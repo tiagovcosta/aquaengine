@@ -23,4 +23,4 @@ Private branches are used to track live changes and start development of new fea
 2. Download the [Dependencies folder](http://www.tiagovcosta.com/Dependencies.rar), and extract inside the AquaEngine\ folder.
 3. Download the [data folder](http://www.tiagovcosta.com/data.rar), and extract inside the AquaEngine\Projects\ folder.
 
-#Do you need need help or want to contribute? [Contact me](mailto:tiago.costav@gmail.com).
+#Do you need help or want to contribute? [Contact me](mailto:tiago.costav@gmail.com).
