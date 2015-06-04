@@ -1,0 +1,343 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Core">
+      <UniqueIdentifier>{04058ae9-35e9-487d-8526-b02687cbbff4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Allocators">
+      <UniqueIdentifier>{a8ec5be3-9e76-40a1-8bb6-7149e5fc94fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{24090e82-c5d8-4bc1-8e99-f069f3de1e0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Components">
+      <UniqueIdentifier>{2a1deb7a-d05a-4611-9f8f-856e7a476166}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Containers">
+      <UniqueIdentifier>{3043dfcb-b181-4bbb-8e6a-3118b8a18cab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{a43d0b45-1aad-460e-ae1f-c23d897f883c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\RenderDevice">
+      <UniqueIdentifier>{73ca9996-0feb-430a-a1e0-0c1e86e6b921}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DevTools">
+      <UniqueIdentifier>{6e78169d-f40f-4780-99a7-a161cc685844}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PostProcess">
+      <UniqueIdentifier>{d9a6d6d0-c57d-4ce9-b2c3-72afc67320b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generators">
+      <UniqueIdentifier>{1876c7c0-0c8a-481e-8b3b-dafe4f8b6f06}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{f7bacc1d-730f-430c-8e68-056264898855}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Allocators\Allocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\JobManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="AquaTypes.h" />
+    <ClInclude Include="Core\ThreadLocalArray.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\AllocatorProxy.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\BlockAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\BlockAllocatorProxy.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\DynamicLinearAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\EndAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\FixedLinearAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\FreeListAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\LinearAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\ProxyAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\ScopeStack.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Allocators\SmallBlockAllocator.h">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="AquaGame.h" />
+    <ClInclude Include="Core\Allocators\Allocator.inl">
+      <Filter>Core\Allocators</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Timer.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Logger.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\ScriptUtilities.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\StringID.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\TransformManager.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\EntityManager.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\Array.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\HashMap.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\Pool.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Containers\Queue.h">
+      <Filter>Core\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="AquaMath.h" />
+    <ClInclude Include="Renderer\RenderDevice\RenderDevice.h">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceTypes.h">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceEnums.h">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceDescs.h">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderDevice\ParameterGroup.h">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\half.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\PointerMath.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\BinaryReader.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Debug.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ComputeShader.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ParameterCache.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RendererInterfaces.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RendererUtilities.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ShaderManager.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RendererStructs.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\File.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\FileLoader.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\ModelManager.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Blob.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceD3D11.inl">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimitiveMeshManager.h" />
+    <ClInclude Include="Components\LightManager.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DevTools\DevUI.h">
+      <Filter>DevTools</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicSky.h" />
+    <ClInclude Include="PostProcess\ToneMapper.h">
+      <Filter>PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\DepthOfField.h">
+      <Filter>PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Generators\ShadowMapGenerator.h">
+      <Filter>Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Generators\CSMUtilties.h">
+      <Filter>Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\TextureManager.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\DDS.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="DevTools\Profiler.h">
+      <Filter>DevTools</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\PhysicsManager.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="DevTools\TextRenderer.h">
+      <Filter>DevTools</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources\FontManager.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Components\VolumetricLightManager.h">
+      <Filter>Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\MaterialsManager.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core\Allocators\Allocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\JobManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\BlockAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\BlockAllocatorProxy.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\DynamicLinearAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\EndAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\FixedLinearAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\FreeListAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\LinearAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\ProxyAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Allocators\SmallBlockAllocator.cpp">
+      <Filter>Core\Allocators</Filter>
+    </ClCompile>
+    <ClCompile Include="AquaGame.cpp" />
+    <ClCompile Include="Core\TimerWindows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\Logger.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\ScriptUtilities.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\StringID.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\TransformManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderDevice\RenderDeviceD3D11.cpp">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\half.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\BinaryReader.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ParameterCache.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RendererUtilities.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ShaderManager.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\File.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\FileLoaderWindows.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\ModelManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderDevice\ParameterGroup.cpp">
+      <Filter>Renderer\RenderDevice</Filter>
+    </ClCompile>
+    <ClCompile Include="PrimitiveMeshManager.cpp" />
+    <ClCompile Include="Components\LightManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicSky.cpp" />
+    <ClCompile Include="Generators\ShadowMapGenerator.cpp">
+      <Filter>Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Generators\CSMUtilities.cpp">
+      <Filter>Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\TextureManager.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="DevTools\Profiler.cpp">
+      <Filter>DevTools</Filter>
+    </ClCompile>
+    <ClCompile Include="Components\PhysicsManager.cpp">
+      <Filter>Components</Filter>
+    </ClCompile>
+    <ClCompile Include="DevTools\TextRenderer.cpp">
+      <Filter>DevTools</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources\FontManager.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

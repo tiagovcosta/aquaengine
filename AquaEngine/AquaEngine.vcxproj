@@ -1,0 +1,409 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Development|Win32">
+      <Configuration>Development</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Development|x64">
+      <Configuration>Development</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6F87F410-52A2-423C-8B1A-79F6A91C6380}</ProjectGuid>
+    <RootNamespace>AquaEngine</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Development|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Development|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\SDK\Lib\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)Dependencies\DirectXTK\Inc;$(SolutionDir)Dependencies\LuaJIT\inc;$(SolutionDir)Dependencies\AntTweakBar\include;$(SolutionDir)Dependencies\PhysX\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\LuaJIT\$(Platform)\;$(SolutionDir)Dependencies\DirectXTK\Bin\Desktop_2013\$(Platform)\$(Configuration)\;$(SolutionDir)Dependencies\AntTweakBar\lib;$(SolutionDir)Dependencies\PhysX\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\SDK\Lib\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)Dependencies\DirectXTK\Inc;$(SolutionDir)Dependencies\LuaJIT\inc;$(SolutionDir)Dependencies\AntTweakBar\include;$(SolutionDir)Dependencies\PhysX\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\LuaJIT\$(Platform)\;$(SolutionDir)Dependencies\DirectXTK\Bin\Desktop_2013\$(Platform)\$(Configuration)\;$(SolutionDir)Dependencies\AntTweakBar\lib;$(SolutionDir)Dependencies\PhysX\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development|Win32'">
+    <OutDir>..\SDK\Lib\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)Dependencies\DirectXTK\Inc;$(SolutionDir)Dependencies\LuaJIT\inc;$(SolutionDir)Dependencies\AntTweakBar\include;$(SolutionDir)Dependencies\PhysX\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\LuaJIT\$(Platform)\;$(SolutionDir)Dependencies\DirectXTK\Bin\Desktop_2013\$(Platform)\$(Configuration)\;$(SolutionDir)Dependencies\AntTweakBar\lib;$(SolutionDir)Dependencies\PhysX\Lib\vc12win32;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\SDK\Lib\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(SolutionDir)Dependencies\DirectXTK\Inc;$(SolutionDir)Dependencies\LuaJIT\inc;$(SolutionDir)Dependencies\AntTweakBar\include;$(SolutionDir)Dependencies\PhysX\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\LuaJIT\$(Platform)\;$(SolutionDir)Dependencies\DirectXTK\Bin\Desktop_2013\$(Platform)\$(Configuration)\;$(SolutionDir)Dependencies\AntTweakBar\lib;$(SolutionDir)Dependencies\PhysX\Lib\vc12win64;$(LibraryPath)</LibraryPath>
+    <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\SDK\Lib\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(SolutionDir)Dependencies\DirectXTK\Inc;$(SolutionDir)Dependencies\LuaJIT\inc;$(SolutionDir)Dependencies\AntTweakBar\include;$(SolutionDir)Dependencies\PhysX\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\LuaJIT\$(Platform)\;$(SolutionDir)Dependencies\DirectXTK\Bin\Desktop_2013\$(Platform)\$(Configuration)\;$(SolutionDir)Dependencies\AntTweakBar\lib;$(SolutionDir)Dependencies\PhysX\Lib\vc12win64;$(LibraryPath)</LibraryPath>
+    <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Development|x64'">
+    <OutDir>..\SDK\Lib\$(Platform)\$(Configuration)\</OutDir>
+    <IncludePath>$(SolutionDir)Dependencies\DirectXTK\Inc;$(SolutionDir)Dependencies\LuaJIT\inc;$(SolutionDir)Dependencies\AntTweakBar\include;$(SolutionDir)Dependencies\PhysX\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Dependencies\LuaJIT\$(Platform)\;$(SolutionDir)Dependencies\DirectXTK\Bin\Desktop_2013\$(Platform)\$(Configuration)\;$(SolutionDir)Dependencies\AntTweakBar\lib;$(SolutionDir)Dependencies\PhysX\Lib\vc12win64;$(LibraryPath)</LibraryPath>
+    <IntDir>Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;WIN32_LEAN_AND_MEAN;AQUA_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\SDK\Inc"
+ROBOCOPY "." "..\SDK\Inc" "*.h" "*.inl" /S /PURGE
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy header files to SDK directory</Message>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>PhysX3CHECKED_x32.lib;PhysX3CommonCHECKED_x32.lib;PhysX3ExtensionsCHECKED.lib;PhysXVisualDebuggerSDKCHECKED.lib;PhysXProfileSDKCHECKED.lib;PxTaskCHECKED.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;WIN32_LEAN_AND_MEAN;AQUA_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\SDK\Inc"
+ROBOCOPY "." "..\SDK\Inc" "*.h" "*.inl" /S /PURGE
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy header files to SDK directory</Message>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>PhysX3DEBUG_x64.lib;PhysX3CommonDEBUG_x64.lib;PhysX3ExtensionsDEBUG.lib;PhysXVisualDebuggerSDKDEBUG.lib;PhysXProfileSDKDEBUG.lib;PxTaskDEBUG.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;WIN32_LEAN_AND_MEAN;AQUA_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\SDK\Inc"
+ROBOCOPY "." "..\SDK\Inc" "*.h" "*.inl" /S /PURGE
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy header files to SDK directory</Message>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>PhysX3CHECKED_x32.lib;PhysX3CommonCHECKED_x32.lib;PhysX3ExtensionsCHECKED.lib;PhysXVisualDebuggerSDKCHECKED.lib;PhysXProfileSDKCHECKED.lib;PxTaskCHECKED.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Development|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;WIN32_LEAN_AND_MEAN;AQUA_DEVELOPMENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\SDK\Inc"
+ROBOCOPY "." "..\SDK\Inc" "*.h" "*.inl" /S /PURGE
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy header files to SDK directory</Message>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>PhysX3CHECKED_x32.lib;PhysX3CommonCHECKED_x32.lib;PhysX3ExtensionsCHECKED.lib;PhysXVisualDebuggerSDKCHECKED.lib;PhysXProfileSDKCHECKED.lib;PxTaskCHECKED.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;WIN32_LEAN_AND_MEAN;AQUA_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\SDK\Inc"
+ROBOCOPY "." "..\SDK\Inc" "*.h" "*.inl" /S /PURGE
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy header files to SDK directory</Message>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>PhysX3CHECKED_x64.lib;PhysX3CommonCHECKED_x64.lib;PhysX3ExtensionsCHECKED.lib;PhysXVisualDebuggerSDKCHECKED.lib;PhysXProfileSDKCHECKED.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Development|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>WIN32;WIN32_LEAN_AND_MEAN;AQUA_DEVELOPMENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PostBuildEvent>
+      <Command>mkdir "..\SDK\Inc"
+ROBOCOPY "." "..\SDK\Inc" "*.h" "*.inl" /S /PURGE
+set rce=%errorlevel%
+if not %rce%==1 exit %rce% else exit 0</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy header files to SDK directory</Message>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>PhysX3CHECKED_x64.lib;PhysX3CommonCHECKED_x64.lib;PhysX3ExtensionsCHECKED.lib;PhysXVisualDebuggerSDKCHECKED.lib;PhysXProfileSDKCHECKED.lib;PxTaskCHECKED.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="AquaGame.h" />
+    <ClInclude Include="AquaMath.h" />
+    <ClInclude Include="AquaTypes.h" />
+    <ClInclude Include="Components\EntityManager.h" />
+    <ClInclude Include="Components\LightManager.h" />
+    <ClInclude Include="Components\ModelManager.h" />
+    <ClInclude Include="Components\PhysicsManager.h" />
+    <ClInclude Include="Components\TransformManager.h" />
+    <ClInclude Include="Components\VolumetricLightManager.h" />
+    <ClInclude Include="Core\Allocators\Allocator.h" />
+    <ClInclude Include="Core\Allocators\AllocatorProxy.h" />
+    <ClInclude Include="Core\Allocators\BlockAllocator.h" />
+    <ClInclude Include="Core\Allocators\BlockAllocatorProxy.h" />
+    <ClInclude Include="Core\Allocators\DynamicLinearAllocator.h" />
+    <ClInclude Include="Core\Allocators\EndAllocator.h" />
+    <ClInclude Include="Core\Allocators\FixedLinearAllocator.h" />
+    <ClInclude Include="Core\Allocators\FreeListAllocator.h" />
+    <ClInclude Include="Core\Allocators\LinearAllocator.h" />
+    <ClInclude Include="Core\Allocators\ProxyAllocator.h" />
+    <ClInclude Include="Core\Allocators\ScopeStack.h" />
+    <ClInclude Include="Core\Allocators\SmallBlockAllocator.h" />
+    <ClInclude Include="Core\Containers\Array.h" />
+    <ClInclude Include="Core\Containers\HashMap.h" />
+    <ClInclude Include="Core\Containers\Pool.h" />
+    <ClInclude Include="Core\Containers\Queue.h" />
+    <ClInclude Include="Core\JobManager.h" />
+    <ClInclude Include="Core\ThreadLocalArray.h" />
+    <ClInclude Include="Core\Timer.h" />
+    <ClInclude Include="DevTools\DevUI.h" />
+    <ClInclude Include="DevTools\Profiler.h" />
+    <ClInclude Include="DevTools\TextRenderer.h" />
+    <ClInclude Include="DynamicSky.h" />
+    <ClInclude Include="Generators\CSMUtilties.h" />
+    <ClInclude Include="Generators\ShadowMapGenerator.h" />
+    <ClInclude Include="PostProcess\DepthOfField.h" />
+    <ClInclude Include="PrimitiveMeshManager.h" />
+    <ClInclude Include="Renderer\Camera.h" />
+    <ClInclude Include="Renderer\ComputeShader.h" />
+    <ClInclude Include="Renderer\MaterialsManager.h" />
+    <ClInclude Include="Renderer\ParameterCache.h" />
+    <ClInclude Include="Renderer\RenderDevice\ParameterGroup.h" />
+    <ClInclude Include="Renderer\RenderDevice\RenderDevice.h" />
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceDescs.h" />
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceEnums.h" />
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceTypes.h" />
+    <ClInclude Include="Renderer\Renderer.h" />
+    <ClInclude Include="Renderer\RendererInterfaces.h" />
+    <ClInclude Include="Renderer\RendererStructs.h" />
+    <ClInclude Include="Renderer\RendererUtilities.h" />
+    <ClInclude Include="Renderer\ShaderManager.h" />
+    <ClInclude Include="PostProcess\ToneMapper.h" />
+    <ClInclude Include="Resources\DDS.h" />
+    <ClInclude Include="Resources\FontManager.h" />
+    <ClInclude Include="Resources\TextureManager.h" />
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="Utilities\BinaryReader.h" />
+    <ClInclude Include="Utilities\Blob.h" />
+    <ClInclude Include="Utilities\Debug.h" />
+    <ClInclude Include="Utilities\File.h" />
+    <ClInclude Include="Utilities\FileLoader.h" />
+    <ClInclude Include="Utilities\half.h" />
+    <ClInclude Include="Utilities\Logger.h" />
+    <ClInclude Include="Utilities\PointerMath.h" />
+    <ClInclude Include="Utilities\StringID.h" />
+    <ClInclude Include="Utilities\ScriptUtilities.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AquaGame.cpp" />
+    <ClCompile Include="Components\LightManager.cpp" />
+    <ClCompile Include="Components\ModelManager.cpp" />
+    <ClCompile Include="Components\PhysicsManager.cpp" />
+    <ClCompile Include="Components\TransformManager.cpp" />
+    <ClCompile Include="Core\Allocators\Allocator.cpp" />
+    <ClCompile Include="Core\Allocators\BlockAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\BlockAllocatorProxy.cpp" />
+    <ClCompile Include="Core\Allocators\DynamicLinearAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\EndAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\FixedLinearAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\FreeListAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\LinearAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\ProxyAllocator.cpp" />
+    <ClCompile Include="Core\Allocators\SmallBlockAllocator.cpp" />
+    <ClCompile Include="Core\JobManager.cpp" />
+    <ClCompile Include="Core\TimerWindows.cpp" />
+    <ClCompile Include="DevTools\Profiler.cpp" />
+    <ClCompile Include="DevTools\TextRenderer.cpp" />
+    <ClCompile Include="DynamicSky.cpp" />
+    <ClCompile Include="Generators\CSMUtilities.cpp" />
+    <ClCompile Include="Generators\ShadowMapGenerator.cpp" />
+    <ClCompile Include="PrimitiveMeshManager.cpp" />
+    <ClCompile Include="Renderer\Camera.cpp" />
+    <ClCompile Include="Renderer\ParameterCache.cpp" />
+    <ClCompile Include="Renderer\RenderDevice\ParameterGroup.cpp" />
+    <ClCompile Include="Renderer\RenderDevice\RenderDeviceD3D11.cpp" />
+    <ClCompile Include="Renderer\Renderer.cpp" />
+    <ClCompile Include="Renderer\RendererUtilities.cpp" />
+    <ClCompile Include="Renderer\ShaderManager.cpp" />
+    <ClCompile Include="Resources\FontManager.cpp" />
+    <ClCompile Include="Resources\TextureManager.cpp" />
+    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="Utilities\BinaryReader.cpp" />
+    <ClCompile Include="Utilities\File.cpp" />
+    <ClCompile Include="Utilities\FileLoaderWindows.cpp" />
+    <ClCompile Include="Utilities\half.cpp" />
+    <ClCompile Include="Utilities\Logger.cpp" />
+    <ClCompile Include="Utilities\ScriptUtilities.cpp" />
+    <ClCompile Include="Utilities\StringID.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core\Allocators\Allocator.inl">
+      <FileType>Document</FileType>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Renderer\RenderDevice\RenderDeviceD3D11.inl">
+      <FileType>Document</FileType>
+    </ClInclude>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,16 @@
+#pragma once
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+///////////////// Tiago Costa, 2014              
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+//#define TABLE_SIZE 1000
+
+namespace aqua
+{
+	//Returns an *unique* hash for that string used to compare strings faster
+	unsigned int getStringID(const char* string);
+
+	//Returns the string associated with an hash
+	const char* getString(unsigned int id);
+};
