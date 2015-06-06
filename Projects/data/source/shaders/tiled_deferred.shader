@@ -81,7 +81,7 @@ snippets =
 
 	tiled_deferred = 
 	{
-		include = [ "depth_utilities", "lighting", "cascaded_shadow_mapping" ]
+		include = [ /*"normal_utilities",*/ "gbuffer", "depth_utilities", "lighting", "cascaded_shadow_mapping" ]
 
 		hlsl =
 		"""
@@ -332,9 +332,7 @@ snippets =
 
 				float4 normal_roughness = normal_buffer.Load( uint3(globalIdx.x,globalIdx.y,0) );
 
-				float3 normal = normal_roughness.xyz;
-			    normal *= 2;
-			    normal -= float3(1,1,1);
+				float3 normal = GBUFFER_GET_WS_NORMAL(normal_roughness);
 
 				float depth_buffer_depth = depth_buffer.Load( uint3(globalIdx.x,globalIdx.y,0) );
 
@@ -358,7 +356,7 @@ snippets =
 		        float3 fresnel_diffuse = 1.0 - Ks;
 		       
 		        //float M = normal_roughness.w * normal_roughness.w + 0.0001f;
-		        float M = normal_roughness.w * normal_roughness.w + 0.001f;
+		        float M = GBUFFER_GET_ROUGHNESS(normal_roughness) * GBUFFER_GET_ROUGHNESS(normal_roughness) + 0.001f;
 		        float M_2 = M * M;
 
 		        float3 Rd = Kd * fresnel_diffuse * 1.0f/PI;

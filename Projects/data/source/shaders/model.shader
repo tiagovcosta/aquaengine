@@ -126,9 +126,9 @@ snippets =
 			{
 				float4 pos_hs     : SV_POSITION;
 				float3 pos_vs     : POSITION;
-			    float3 normal_vs  : NORMAL;
+			    float3 normal  : NORMAL;
 				#if NORMAL_MAP
-				float3 tangent_vs : TANGENT;
+				float3 tangent : TANGENT;
 				#endif
 				#if VERTEX_TEXCOORD0
 			    float2 tex_c0     : TEXCOORD0;
@@ -171,10 +171,10 @@ snippets =
 				output.pos_vs = pos_vs.xyz;
 				output.pos_hs = mul(pos_vs, proj);
 				
-				output.normal_vs = mul(float4(input.normal, 0.0f), world_view).xyz;
+				output.normal = mul(float4(input.normal, 0.0f), world_view).xyz;
 				
 				#if NORMAL_MAP
-					output.tangent_vs = mul(float4(input.tangent, 0.0f), world_view).xyz;
+					output.tangent = mul(float4(input.tangent, 0.0f), world_view).xyz;
 				#endif
 				
 				#if VERTEX_TEXCOORD0
@@ -185,13 +185,15 @@ snippets =
 				float4 pos_vs = mul(float4(input.position,1.0f), world);
 				//float4 pos_vs = float4(input.position,1.0f);
 
+				//float4x4 world_view = mul(world, view);
+
 				output.pos_vs = pos_vs.xyz;
 				output.pos_hs = mul(pos_vs, view_proj);
 				
-				output.normal_vs = mul(float4(input.normal, 0.0f), world).xyz;
+				output.normal = mul(float4(input.normal, 0.0f), world).xyz;
 				
 				#if NORMAL_MAP
-					output.tangent_vs = mul(float4(input.tangent, 0.0f), world).xyz;
+					output.tangent = mul(float4(input.tangent, 0.0f), world).xyz;
 				#endif
 				
 				#if VERTEX_TEXCOORD0
@@ -259,29 +261,25 @@ snippets =
 				#endif
 				
 				#if !NORMAL_MAP
-					//output.normal.rgb = 0.5f * (normalize(input.normal_vs) + 1.0f);
-
-					//input.normal_vs *= !is_front_face * -1.0f;
+					//input.normal *= !is_front_face * -1.0f;
 
 					if (!is_front_face)
-						input.normal_vs *= -1.0f; // rendering the back face, so invert the normal
+						input.normal *= -1.0f; // rendering the back face, so invert the normal
 
-					GBUFFER_SET_NORMAL(output, 0.5f * normalize(input.normal_vs) + 0.5f);
+					GBUFFER_SET_NORMAL(output, normalize(input.normal));
 				#else
 					float3 normalT = normal_map.Sample(tri_linear_wrap_sampler, input.tex_c0).xyz;
 
 					normalT = 2.0f*normalT - 1.0f;
 
-					float3 N = normalize(input.normal_vs);
-					float3 T = normalize(input.tangent_vs - dot(input.tangent_vs, N)*N);
+					float3 N = normalize(input.normal);
+					float3 T = normalize(input.tangent - dot(input.tangent, N)*N);
 					float3 B = cross(N,T);
 					
 					float3x3 TBN = float3x3(T, B, N);
-					float3 bumped_normal_vs = normalize(mul(normalT, TBN));
+					float3 bumped_normal = normalize(mul(normalT, TBN));
 				    
-					//output.normal.rgb = 0.5f * (normalize(bumped_normal_vs) + 1.0f);
-
-					GBUFFER_SET_NORMAL(output, 0.5f * normalize(bumped_normal_vs) + 0.5f);
+					GBUFFER_SET_NORMAL(output, normalize(bumped_normal));
 
 				#endif
 				

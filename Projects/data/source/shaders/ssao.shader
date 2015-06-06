@@ -75,7 +75,7 @@ snippets =
 
 	ps_func =
 	{
-		include = [samplers, ps_input]
+		include = [ "samplers", "ps_input", "gbuffer" ]
 
 		hlsl =
 		"""
@@ -143,7 +143,8 @@ snippets =
 
 			float4 ps_main( PS_INPUT input) : SV_TARGET0
 			{
-				float3 normal = normal_buffer.Load(uint3(input.position.xy, 0)).rgb * 2.0f - 1.0f;
+				//float3 normal = normal_buffer.Load(uint3(input.position.xy, 0)).rgb * 2.0f - 1.0f;
+				float3 normal = GBUFFER_GET_VS_NORMAL(normal_buffer.Load(uint3(input.position.xy, 0)));
 				float depth   = depth_buffer.Load(uint3(input.position.xy, 0)).r;
 
 				depth = proj._43 / (depth - proj._33);
@@ -152,8 +153,8 @@ snippets =
 				float3 position = input.view_ray * depth;
 				//position = mul(float4(position, 1.0f), inv_view).xyz;
 
-				normal = mul(float4(normal, 0.0f), view).xyz;
-				normal = normalize(normal);
+				//normal = mul(float4(normal, 0.0f), view).xyz;
+				//normal = normalize(normal);
 
 				//float3 rvec      = texture(uTexRandom, vTexcoord * uNoiseScale).xyz * 2.0 - 1.0;
 				float bayer  = BAYER_MATRIX[input.position.x%4][input.position.y%4];

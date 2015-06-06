@@ -371,12 +371,14 @@ snippets =
 					normal.z = h10 - h12;
 					normal.y = 2;
 
-					normal = normalize(normal);
-
 					//input.normal = Sobel(input.tex.xy);
 
 				#endif
 
+				#if VIEW_SPACE_NORMAL
+				normal = mul(float4(normal, 0.0f), view).xyz;
+				#endif
+				
 				//float NdL = saturate(dot(normal, normalize(float3(1.0f, 1.0f, 0.0f))));
 
 				//float3 color = float3(0.3f, 0.8f, 0.0f);
@@ -393,7 +395,8 @@ snippets =
 				GBUFFER_SET_COLOR(output, color.rgb /* (NdL + 0.3f)*/);
 				//GBUFFER_SET_F0(output, 0.18f);
 				GBUFFER_SET_F0(output, 0.04f / 0.2 / 2);
-				GBUFFER_SET_NORMAL(output, 0.5f * normal + 0.5f);
+				GBUFFER_SET_NORMAL(output, normalize(normal));
+				//GBUFFER_SET_NORMAL(output, 0.5f * normal + 0.5f);
 				GBUFFER_SET_ROUGHNESS(output, 0.8f);
 
 				return output;

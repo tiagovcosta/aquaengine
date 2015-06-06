@@ -109,6 +109,9 @@ public:
 
 		//NORMAL BUFFER
 
+		texture_desc.format = RenderResourceFormat::RGBA16_UNORM;
+		view_desc.format    = RenderResourceFormat::RGBA16_UNORM;
+
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
 													  0, nullptr, &_normal_buffer_sr, &_normal_buffer_rt, nullptr, nullptr);
 
