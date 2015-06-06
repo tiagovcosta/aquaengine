@@ -114,8 +114,35 @@ snippets =
 		"""
 	}
 
+	normal_utilities =
+	{
+		hlsl = 
+		"""
+			float2 encode_normal(float3 n)
+			{
+			    float p = sqrt(-n.z*8+8);
+			    return float2(n.xy/p + 0.5);
+			}
+
+			float3 decode_normal(float2 enc)
+			{
+				float2 fenc = enc*4-2;
+				float f     = dot(fenc,fenc);
+				float g     = sqrt(1-f/4);
+
+				float3 n;
+				n.xy = fenc*g;
+				n.z  = 1-f/2;
+				n.z = -n.z;
+
+				return n;
+			}
+		"""
+	}
+
 	gbuffer =
 	{
+		include = [ "normal_utilities" ]
 		hlsl = 
 		"""
 			struct GBUFFER_OUT
@@ -126,8 +153,31 @@ snippets =
 
 			#define GBUFFER_SET_COLOR(gbuffer, value) gbuffer.color_f0.rgb = value
 			#define GBUFFER_SET_F0(gbuffer, value) gbuffer.color_f0.a = value
-			#define GBUFFER_SET_NORMAL(gbuffer, value) gbuffer.normal_roughness.rgb = value
+
+			//To prevent precision issues a RGBA16_UNORM texture must be used
+			//If there's a need for A CHANNEL in GBUFFER switch to VIEW_SPACE_NORMAL and use normal_roughness.w channel
+			#define WORLD_SPACE_NORMAL 1
+			#define VIEW_SPACE_NORMAL 0
+
+		#if WORLD_SPACE_NORMAL
+
+			#define GBUFFER_SET_NORMAL(gbuffer, value) gbuffer.normal_roughness.rgb = 0.5f * value + 0.5f
+			#define GBUFFER_GET_WS_NORMAL(value) 2.0f * value.xyz - 1.0f
+			#define GBUFFER_GET_VS_NORMAL(value) normalize( mul(float4(2.0f * value.xyz - 1.0f, 0.0f), view).xyz )
+
 			#define GBUFFER_SET_ROUGHNESS(gbuffer, value) gbuffer.normal_roughness.a = value
+			#define GBUFFER_GET_ROUGHNESS(value) value.a
+
+		#elif VIEW_SPACE_NORMAL
+
+			#define GBUFFER_SET_NORMAL(gbuffer, value) gbuffer.normal_roughness.rga = float3(encode_normal(value), 0.0f)
+			#define GBUFFER_GET_WS_NORMAL(value) normalize( mul(float4(decode_normal(value.xy), 0.0f), inv_view).xyz )
+			#define GBUFFER_GET_VS_NORMAL(value) decode_normal(value.xy)
+
+			#define GBUFFER_SET_ROUGHNESS(gbuffer, value) gbuffer.normal_roughness.b = value
+			#define GBUFFER_GET_ROUGHNESS(value) value.b
+
+		#endif
 		"""
 	}
 
