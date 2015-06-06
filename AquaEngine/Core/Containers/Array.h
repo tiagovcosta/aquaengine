@@ -25,6 +25,7 @@ namespace aqua
 		const T& operator[](size_t i) const;
 
 		void push(T value);
+		void push(size_t count, const T* values);
 		void pop();
 
 		void clear();
@@ -121,6 +122,20 @@ namespace aqua
 			grow();
 
 		_data[_size++] = std::move(value);
+	}
+
+	template<class T>
+	void Array<T>::push(size_t count, const T* values)
+	{
+		if(_size + count > _capacity)
+			grow();
+
+		size_t start_size = _size;
+
+		for(size_t i = 0; i < count; i++)
+			_data[start_size + i] = values[i];
+
+		_size += count;
 	}
 
 	template<class T>

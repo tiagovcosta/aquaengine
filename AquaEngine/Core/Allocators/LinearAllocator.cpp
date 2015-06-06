@@ -11,7 +11,7 @@ LinearAllocator::LinearAllocator(size_t size, void* start)
 
 void LinearAllocator::deallocate(void* p)
 {
-	ASSERT("Cannot call deallocate on Linear Allocators" && false);
+	//ASSERT("Cannot call deallocate on Linear Allocators" && false);
 }
 
 void* LinearAllocator::getStart() const

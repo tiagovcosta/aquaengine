@@ -17,6 +17,7 @@ namespace aqua
 		LinearAllocator(size_t size, void* start);
 		//virtual ~LinearAllocator();
 
+		//NoOp - Use rewind() or clear()
 		void  deallocate(void* p) override final;
 
 		void* getStart() const;
