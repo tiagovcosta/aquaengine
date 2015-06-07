@@ -420,7 +420,7 @@ public:
 
 			_player_box = _entity_manager->create();
 			auto box_transform = _transform_manager->create(_player_box);
-			auto box_model = _model_manager->create(_player_box, _primtive_mesh_manager->getBox(), 0);
+			auto box_model = _model_manager->create(_player_box, _primtive_mesh_manager->getSphere(), 0);
 
 			Material player_box_material;
 			player_box_material.permutation = 0;
@@ -524,8 +524,8 @@ public:
 		TwAddVarRW(myBar, "Near Blur Radius Fraction", TW_TYPE_FLOAT, &_near_blur_radius_fraction, "step = 0.01");
 		TwAddVarRW(myBar, "Far Blur Radius Fraction", TW_TYPE_FLOAT, &_far_blur_radius_fraction, "step = 0.01");
 
-		_focus_plane_z             = 3.0f;
-		_dof_size                  = 1.0f;
+		_focus_plane_z             = 22.0f;
+		_dof_size                  = 20.0f;
 		_near_blur_transition_size = 1;
 		_far_blur_transition_size  = 10;
 		_near_blur_radius_fraction = 1.5f;
@@ -1035,6 +1035,55 @@ public:
 
 private:
 
+	void createMaterials()
+	{
+		RenderDevice& render_device = *_renderer.getRenderDevice();
+
+		//Get model shader parameters desc
+		auto model_shader = _renderer.getShaderManager()->getRenderShader(getStringID("data/shaders/model.cshader"));
+
+		auto model_material_params_desc_set = model_shader->getMaterialParameterGroupDescSet();
+		auto model_material_params_desc     = getParameterGroupDesc(*model_material_params_desc_set, 0);
+
+		//Red material
+		{
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+				*model_material_params_desc, UINT32_MAX, 0, nullptr);
+
+			char* cbuffer_data = (char*)params->getCBuffersData();
+
+			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 0.0f, 0.0f); //diffuse color
+			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);  //f0 + roughness
+
+			_red_material = render_device.cacheParameterGroup(*params);
+
+			render_device.deleteParameterGroup(*_main_allocator, *params);
+		}
+
+		//Ground material
+		{
+			Permutation ground_material_permutation;
+			ground_material_permutation = enableOption(*model_material_params_desc_set, getStringID("CHECKBOARD"), ground_material_permutation);
+			auto ground_material_params_desc = getParameterGroupDesc(*model_material_params_desc_set, ground_material_permutation);
+
+			auto ground_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+				*ground_material_params_desc, UINT32_MAX, 0, nullptr);
+
+			char* cbuffer_data = (char*)ground_material_params->getCBuffersData();
+
+			*(Vector3*)(cbuffer_data) = Vector3(0.2f, 0.2f, 0.2f); //diffuse color
+			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);		//f0 + roughness
+
+			_ground_material = render_device.cacheParameterGroup(*ground_material_params);
+
+			render_device.deleteParameterGroup(*_main_allocator, *ground_material_params);
+
+			Material material;
+			material.permutation = ground_material_permutation;
+			material.params = _ground_material;
+		}
+	}
+
 	void updateSunSkyColor()
 	{
 		Vector3 sun_color = _dynamic_sky->getSunColor();
@@ -1103,6 +1152,8 @@ private:
 
 	float _runtime;
 	u32 _frame_num;
+
+	Material _red_material2;
 
 	CachedParameterGroup* _red_material;
 	CachedParameterGroup* _ground_material;
