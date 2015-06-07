@@ -26,9 +26,20 @@ passes =
 
 	shadow =
 	{
+		condition = "!ALPHA_MASKED"
+
 		vs = "vs_shadow"
-		//ps = "ps_shadow"
 		ps = { condition = "ALPHA_MASKED", value = "ps_shadow" }
+
+		rasterizer_state = { condition = "TWO_SIDED" value = "no_cull" }
+	}
+
+	shadow_alpha_masked =
+	{
+		condition = "ALPHA_MASKED"
+		
+		vs = "vs_shadow"
+		ps = "ps_shadow"
 
 		rasterizer_state = { condition = "TWO_SIDED" value = "no_cull" }
 	}

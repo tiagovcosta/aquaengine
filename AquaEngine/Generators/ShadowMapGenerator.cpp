@@ -82,6 +82,7 @@ void ShadowMapGenerator::generate(const void* args_, const VisibilityData* visib
 
 	pass_index = _renderer->getShaderManager()->getPassIndex(passes_names[(u8)PassNameIndex::SHADOW_MAP_ALPHA_MASKED]);
 
+	_renderer->render(pass_index, queues[(u8)PassNameIndex::SHADOW_MAP_ALPHA_MASKED]);
 };
 
 void ShadowMapGenerator::generate(lua_State* lua_state)

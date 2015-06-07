@@ -65,6 +65,11 @@ passes =
 
 	}
 
+	shadow_alpha_masked =
+	{
+
+	}
+
 	debug =
 	{
 		constant_buffers = 
