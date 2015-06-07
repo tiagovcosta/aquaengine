@@ -202,6 +202,8 @@ public:
 		//_transform_manager->setLocalPosition(camera_transform, Vector3(0, 22, -50.0f));
 		//_transform_manager->rotate(camera_transform, Quaternion::CreateFromYawPitchRoll(0.0f, 3.14 * 90 / 180, 0.0f), true);
 
+		createMaterials();
+
 		//Create basic physic material
 		PhysicMaterialDesc physic_material_desc;
 		physic_material_desc.static_friction  = 0.1f;
@@ -216,51 +218,16 @@ public:
 		auto model_material_params_desc_set = model_shader->getMaterialParameterGroupDescSet();
 		auto model_material_params_desc     = getParameterGroupDesc(*model_material_params_desc_set, 0);
 
-		//Red material
-		{
-			auto red_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-																		  *model_material_params_desc, UINT32_MAX, 0, nullptr);
-
-			char* cbuffer_data = (char*)red_material_params->getCBuffersData();
-
-			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 0.0f, 0.0f); //diffuse color
-			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);  //f0 + roughness
-
-			_red_material = render_device.cacheParameterGroup(*red_material_params);
-
-			render_device.deleteParameterGroup(*_main_allocator, *red_material_params);
-		}
-
 		//Ground
 		{
-			auto ground_plane = _entity_manager->create();
+			auto ground_plane     = _entity_manager->create();
 			auto ground_transform = _transform_manager->create(ground_plane);
-			auto groud_model = _model_manager->create(ground_plane, _primtive_mesh_manager->getPlane(), 0);
+			auto groud_model      = _model_manager->create(ground_plane, _primtive_mesh_manager->getPlane(), 0);
 
 			_transform_manager->translate(ground_transform, Vector3(-1.0f, 0.0f, 9.0f));
 			_transform_manager->scale(ground_transform, Vector3(250.0f, 1.0f, 250.0f));
 
-			Permutation ground_material_permutation;
-			ground_material_permutation = enableOption(*model_material_params_desc_set, getStringID("CHECKBOARD"), ground_material_permutation);
-			auto ground_material_params_desc = getParameterGroupDesc(*model_material_params_desc_set, ground_material_permutation);
-
-			auto ground_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-				*ground_material_params_desc, UINT32_MAX, 0, nullptr);
-
-			char* cbuffer_data = (char*)ground_material_params->getCBuffersData();
-
-			*(Vector3*)(cbuffer_data) = Vector3(0.2f, 0.2f, 0.2f); //diffuse color
-			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);		//f0 + roughness
-
-			_ground_material = render_device.cacheParameterGroup(*ground_material_params);
-
-			render_device.deleteParameterGroup(*_main_allocator, *ground_material_params);
-
-			Material material;
-			material.permutation = ground_material_permutation;
-			material.params = _ground_material;
-
-			_model_manager->addSubset(groud_model, 0, &material);
+			_model_manager->addSubset(groud_model, 0, &_ground_material);
 
 			//Ground rigid actor
 			auto ground_shape = _physics_manager->createBoxShape(100.0f, 0.5f, 100.0f, physic_material);
@@ -271,10 +238,73 @@ public:
 		//--------------------
 		// BOXES "WALL"
 		//--------------------
+		{
+			const Vector3 WALL_ORIGIN(0.0f, 0.0f, -10.0f);
 
-		const int BOXES_WALL_WIDTH = 10;
-		const int BOXES_WINDOW_HEIGHT = 10;
+			const float SIDE_BLOCK_WIDTH  = 4.0f;
+			const float SIDE_BLOCK_HEIGHT = 12.0f;
 
+			//left
+			auto box           = _entity_manager->create();
+			auto box_transform = _transform_manager->create(box);
+			auto box_model     = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
+
+			_transform_manager->scale(box_transform, Vector3(SIDE_BLOCK_WIDTH, SIDE_BLOCK_HEIGHT, 1.0f));
+			_transform_manager->translate(box_transform, WALL_ORIGIN, true);
+
+			_model_manager->addSubset(box_model, 0, &_red_material);
+
+			auto physic_shape = _physics_manager->createBoxShape(SIDE_BLOCK_WIDTH / 2, SIDE_BLOCK_HEIGHT / 2, 0.5f, physic_material);
+			auto rigid_actor  = _physics_manager->createStatic(box, physic_shape, WALL_ORIGIN + Vector3(0.0f, SIDE_BLOCK_HEIGHT / 2, 0.0f));
+
+			//right
+			box           = _entity_manager->create();
+			box_transform = _transform_manager->create(box);
+			box_model     = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
+
+			_transform_manager->scale(box_transform, Vector3(SIDE_BLOCK_WIDTH, SIDE_BLOCK_HEIGHT, 1.0f));
+			_transform_manager->translate(box_transform, WALL_ORIGIN + Vector3(2 * SIDE_BLOCK_WIDTH, 0.0f, 0.0f), true);
+
+			_model_manager->addSubset(box_model, 0, &_red_material);
+
+			rigid_actor = _physics_manager->createStatic(box, physic_shape, 
+														 WALL_ORIGIN + Vector3(2 * SIDE_BLOCK_WIDTH, SIDE_BLOCK_HEIGHT / 2, 0.0f));
+
+			//------------------------------------
+
+			const float MIDDLE_BLOCK_WIDTH  = 4.0f;
+			const float MIDDLE_BLOCK_HEIGHT = 4.0f;
+
+			// middle physic shape
+			physic_shape = _physics_manager->createBoxShape(MIDDLE_BLOCK_WIDTH / 2, MIDDLE_BLOCK_HEIGHT / 2, 0.5f, physic_material);
+
+			//middle top
+			box           = _entity_manager->create();
+			box_transform = _transform_manager->create(box);
+			box_model     = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
+
+			_transform_manager->scale(box_transform, Vector3(MIDDLE_BLOCK_WIDTH, MIDDLE_BLOCK_HEIGHT, 1.0f));
+			_transform_manager->translate(box_transform, WALL_ORIGIN + Vector3(MIDDLE_BLOCK_WIDTH, 2 * MIDDLE_BLOCK_HEIGHT, 0.0f), true);
+
+			_model_manager->addSubset(box_model, 0, &_player_material);
+
+			rigid_actor = _physics_manager->createStatic(box, physic_shape, 
+														 WALL_ORIGIN + Vector3(MIDDLE_BLOCK_WIDTH, 5 * MIDDLE_BLOCK_HEIGHT / 2, 0.0f));
+
+			//middle bottom
+			box           = _entity_manager->create();
+			box_transform = _transform_manager->create(box);
+			box_model     = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
+
+			_transform_manager->scale(box_transform, Vector3(MIDDLE_BLOCK_WIDTH, MIDDLE_BLOCK_HEIGHT, 1.0f));
+			_transform_manager->translate(box_transform, WALL_ORIGIN + Vector3(MIDDLE_BLOCK_WIDTH, 0.0f, 0.0f), true);
+
+			_model_manager->addSubset(box_model, 0, &_player_material);
+
+			rigid_actor = _physics_manager->createStatic(box, physic_shape, 
+														 WALL_ORIGIN + Vector3(MIDDLE_BLOCK_WIDTH, MIDDLE_BLOCK_HEIGHT / 2, 0.0f));
+		}
+		/*
 		for(int i = 0; i < BOXES_WALL_WIDTH; i++)
 		{
 			for(int j = 0; j < BOXES_WINDOW_HEIGHT; j++)
@@ -283,97 +313,33 @@ public:
 					j > 2 && j < BOXES_WINDOW_HEIGHT - 3)
 					continue;
 
-				auto box = _entity_manager->create();
+				auto box           = _entity_manager->create();
 				auto box_transform = _transform_manager->create(box);
-				auto box_model = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
+				auto box_model     = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
 
 				_transform_manager->translate(box_transform, Vector3(i - BOXES_WALL_WIDTH, j, -10.0f));
 				//_transform_manager->rotate(box_transform, Quaternion::CreateFromYawPitchRoll(3.14 * 45 / 180, 0, 0));
 
-				Material material;
-				material.permutation = 0;
-				material.params = _red_material;
-
-				_model_manager->addSubset(box_model, 0, &material);
+				_model_manager->addSubset(box_model, 0, &_red_material);
 			}
 		}
-
+		*/
 		// FENCE
 		{
-			auto fence = _entity_manager->create();
+			auto fence           = _entity_manager->create();
 			auto fence_transform = _transform_manager->create(fence);
-			auto fence_model = _model_manager->create(fence, _primtive_mesh_manager->getPlane(), 0);
+			auto fence_model     = _model_manager->create(fence, _primtive_mesh_manager->getPlane(), 0);
 
 			_transform_manager->translate(fence_transform, Vector3(0.0f, 0.50f, -3.0f));
-
 			_transform_manager->rotate(fence_transform, Quaternion::CreateFromYawPitchRoll(0.0f, -3.14f * 90 / 180, 0.0f), true);
 			_transform_manager->scale(fence_transform, Vector3(10.0f, 1.0f, 2.0f));
 
-			Permutation fence_material_permutation;
-			fence_material_permutation = enableOption(*model_material_params_desc_set, getStringID("TWO_SIDED"), fence_material_permutation);
-			fence_material_permutation = enableOption(*model_material_params_desc_set, getStringID("DIFFUSE_MAP"), fence_material_permutation);
-			fence_material_permutation = enableOption(*model_material_params_desc_set, getStringID("ALPHA_MASKED"), fence_material_permutation);
-			fence_material_permutation = enableOption(*model_material_params_desc_set, getStringID("TILING"), fence_material_permutation);
-
-			{
-				auto fence_material_params_desc = getParameterGroupDesc(*model_material_params_desc_set, fence_material_permutation);
-
-				auto fence_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-					*fence_material_params_desc, UINT32_MAX, 0, nullptr);
-
-				char* cbuffer_data = (char*)fence_material_params->getCBuffersData();
-
-				*(Vector2*)(cbuffer_data) = Vector2(0.1f, 0.5f); //f0 + roughness
-
-				u32 offset = fence_material_params_desc->getConstantOffset(getStringID("tiling_scale"));
-
-				*(Vector2*)(cbuffer_data + offset) = Vector2(4.0f, 20.0f);
-
-				auto fence_data_size = file2::getFileSize("data/textures/fence.dds");
-
-				char* fence_texture_data = (char*)_scratchpad_allocator->allocate(fence_data_size);
-
-				file2::readFile("data/textures/fence.dds", fence_texture_data);
-
-				_texture_manager.create(getStringID("fence"), fence_texture_data, fence_data_size);
-				auto fence_texture = _texture_manager.getTexture(getStringID("fence"));
-
-				fence_material_params->setSRV(fence_texture, 0);
-
-				_fence_material = render_device.cacheParameterGroup(*fence_material_params);
-
-				render_device.deleteParameterGroup(*_main_allocator, *fence_material_params);
-			}
-
-			Material material;
-			material.permutation = fence_material_permutation;
-			material.params = _fence_material;
-
-			_model_manager->addSubset(fence_model, 0, &material);
+			_model_manager->addSubset(fence_model, 0, &_fence_material);
 
 			//Fence rigid actor
 			auto fence_shape = _physics_manager->createBoxShape(5.0f, 1.0f, 0.01f, physic_material);
 
 			auto fence_rigid_actor = _physics_manager->createStatic(fence, fence_shape, Vector3(0.0f, 1.0f, -3.0f));
-		}
-
-		// Create colorful test materials
-		for(int i = 0; i < NUM_TEST_COLORS; i++)
-		{
-			auto test_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-				*model_material_params_desc, UINT32_MAX, 0, nullptr);
-
-			Vector3* color = (Vector3*)test_material_params->getCBuffersData();
-			*color = TEST_COLORS[i%NUM_TEST_COLORS];
-
-			if(i % 2)
-				*(Vector2*)(color + 1) = Vector2(0.1f, 0.3f);
-			else
-				*(Vector2*)(color + 1) = Vector2(0.1f, 0.8f);
-
-			_test_materials[i] = render_device.cacheParameterGroup(*test_material_params);
-
-			render_device.deleteParameterGroup(*_main_allocator, *test_material_params);
 		}
 
 		// Create many falling boxes
@@ -390,11 +356,7 @@ public:
 				auto box_transform = _transform_manager->create(box);
 				auto box_model = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
 
-				Material material;
-				material.permutation = 0;
-				material.params = _test_materials[(i + j) % NUM_TEST_COLORS];
-
-				_model_manager->addSubset(box_model, 0, &material);
+				_model_manager->addSubset(box_model, 0, &_test_materials[(i + j) % NUM_TEST_COLORS]);
 
 				float height = 50.0f + (rand() % 40) / 10.0f;
 
@@ -404,42 +366,65 @@ public:
 			}
 		}
 
-		// Create player-controlled box (using kinematic physic actor)
+		// Reflective planes
 		{
-			auto player_box_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-				*model_material_params_desc, UINT32_MAX, 0, nullptr);
+			//auto fence_shape = _physics_manager->createBoxShape(1.0f, 0.01f, 3.0f, physic_material);
 
-			char* cbuffer_data = (char*)player_box_material_params->getCBuffersData();
+			auto plane           = _entity_manager->create();
+			auto plane_transform = _transform_manager->create(plane);
+			auto plane_model     = _model_manager->create(plane, _primtive_mesh_manager->getPlane(), 0);
 
-			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 1.0f, 1.0f); //diffuse color
-			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.1f);		//f0 + roughness
+			_transform_manager->translate(plane_transform, Vector3(-2.0f, 0.01f, 0.0f));
+			_transform_manager->scale(plane_transform, Vector3(2.0f, 1.0f, 6.0f));
 
-			_player_box_material = render_device.cacheParameterGroup(*player_box_material_params);
+			_model_manager->addSubset(plane_model, 0, &_metal1);
 
-			render_device.deleteParameterGroup(*_main_allocator, *player_box_material_params);
+			//auto fence_rigid_actor = _physics_manager->createStatic(plane, fence_shape, Vector3(-1.0f, 0.01f, 0.0f));
 
+			//--------------------------------------------------------
+
+			plane           = _entity_manager->create();
+			plane_transform = _transform_manager->create(plane);
+			plane_model     = _model_manager->create(plane, _primtive_mesh_manager->getPlane(), 0);
+
+			_transform_manager->translate(plane_transform, Vector3(0.0f, 0.01f, 0.0f));
+			_transform_manager->scale(plane_transform, Vector3(2.0f, 1.0f, 6.0f));
+
+			_model_manager->addSubset(plane_model, 0, &_metal2);
+
+			//--------------------------------------------------------
+
+			plane           = _entity_manager->create();
+			plane_transform = _transform_manager->create(plane);
+			plane_model     = _model_manager->create(plane, _primtive_mesh_manager->getPlane(), 0);
+
+			_transform_manager->translate(plane_transform, Vector3(2.0f, 0.01f, 0.0f));
+			_transform_manager->scale(plane_transform, Vector3(2.0f, 1.0f, 6.0f));
+
+			_model_manager->addSubset(plane_model, 0, &_metal3);
+		}
+
+		// Create player-controlled sphere (using kinematic physic actor)
+		{
 			_player_box = _entity_manager->create();
 			auto box_transform = _transform_manager->create(_player_box);
 			auto box_model = _model_manager->create(_player_box, _primtive_mesh_manager->getSphere(), 0);
 
-			Material player_box_material;
-			player_box_material.permutation = 0;
-			player_box_material.params = _player_box_material;
-
-			_model_manager->addSubset(box_model, 0, &player_box_material);
+			_model_manager->addSubset(box_model, 0, &_player_material);
 
 			auto rigid_actor = _physics_manager->create(_player_box, PhysicActorType::DYNAMIC);
 
 			_physics_manager->addShape(rigid_actor, box_physic_shape);
 			_physics_manager->setKinematic(rigid_actor, true);
 		}
+
 		//-----------------------------------------------------------------------------------------------------
 		//Setup lights
 		//-----------------------------------------------------------------------------------------------------
 
-		auto light_entity = _entity_manager->create();
+		auto light_entity    = _entity_manager->create();
 		auto light_transform = _transform_manager->create(light_entity);
-		auto light = _light_manager->create(light_entity, LightManager::LightType::POINT);
+		auto light           = _light_manager->create(light_entity, LightManager::LightType::POINT);
 		_transform_manager->translate(light_transform, Vector3(0, 2, 0));
 		_light_manager->setRadius(light, 10);
 		_light_manager->setColor(light, 255, 255, 255);
@@ -449,9 +434,9 @@ public:
 		_light_manager->setColor(spotlight, 255, 255, 255);
 		_light_manager->setAngle(spotlight, 45 * 3.14f / 180);
 
-		_sun = _entity_manager->create();
+		_sun               = _entity_manager->create();
 		auto sun_transform = _transform_manager->create(_sun);
-		auto sun = _light_manager->create(_sun, LightManager::LightType::DIRECTIONAL);
+		auto sun           = _light_manager->create(_sun, LightManager::LightType::DIRECTIONAL);
 		_light_manager->setColor(sun, 255, 255, 255, 255);
 
 		//Vector3 initial_sun_dir = Vector3(1.0f, 1.0f, 0.0f);
@@ -478,15 +463,15 @@ public:
 		auto shader_manager = _renderer.getShaderManager();
 
 		auto test_compute = shader_manager->getComputeShader(getStringID("data/shaders/test_compute.cshader"));
-		auto kernel = test_compute->getKernel(getStringID("noise_one_liner"));
+		auto kernel       = test_compute->getKernel(getStringID("noise_one_liner"));
 
 		auto kernel_params_desc_set = test_compute->getKernelParameterGroupDescSet(kernel);
-		auto kernel_params_desc = getParameterGroupDesc(*kernel_params_desc_set, 0);
+		auto kernel_params_desc     = getParameterGroupDesc(*kernel_params_desc_set, 0);
 
 		_kernel_permutation = test_compute->getPermutation(kernel, 0);
 
 		_kernel_params = _renderer.getRenderDevice()->createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-			*kernel_params_desc, UINT32_MAX, 0, nullptr);
+																		   *kernel_params_desc, UINT32_MAX, 0, nullptr);
 
 		_kernel_params->setUAV(_renderer.getBackBuffer().uav, 0);
 
@@ -588,15 +573,15 @@ public:
 		//Update player-controlled box
 		Vector3 offset;
 
-		auto camera_transform2 = _transform_manager->lookup(_camera_entity);
+		auto camera_transform2   = _transform_manager->lookup(_camera_entity);
 		Matrix4x4 camera_matrix2 = _transform_manager->getWorld(camera_transform2);
 
 		Vector3 camera_forward = camera_matrix2.Backward();
-		camera_forward.y = 0.0f;
+		camera_forward.y       = 0.0f;
 		camera_forward.Normalize();
 
 		Vector3 camera_right = camera_matrix2.Right();
-		camera_right.y = 0.0f;
+		camera_right.y       = 0.0f;
 		camera_right.Normalize();
 
 		if(_keys_down[VK_NUMPAD8])
@@ -631,7 +616,7 @@ public:
 
 		//Update transform component of entities with a physic component
 		u32 num_transforms = _physics_manager->getNumModifiedTransforms();
-		auto transforms = _physics_manager->getModifiedTransforms();
+		auto transforms    = _physics_manager->getModifiedTransforms();
 
 		for(u32 i = 0; i < num_transforms; i++)
 		{
@@ -792,12 +777,12 @@ public:
 		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 		RenderItem render_item;
-		render_item.draw_call = &dc;
-		render_item.num_instances = 1;
+		render_item.draw_call       = &dc;
+		render_item.num_instances   = 1;
 		render_item.instance_params = nullptr;
 		render_item.material_params = nullptr;
-		render_item.mesh = &mesh;
-		render_item.shader = _noise_shader[0];
+		render_item.mesh            = &mesh;
+		render_item.shader          = _noise_shader[0];
 
 		_renderer.setViewport(vp, rt.width, rt.height);
 		_renderer.setRenderTarget(1, &rt, nullptr);
@@ -830,7 +815,7 @@ public:
 			_dynamic_sky->setScattering(_volumetric_light_manager.get());
 			args.scattering = _volumetric_light_manager.get();
 
-			_linear_white   = 50.0f;
+			_linear_white   = 100.0f;
 			_middle_grey    = 5.0f;
 		}
 		else
@@ -944,15 +929,19 @@ public:
 
 		RenderDevice& render_device = *_renderer.getRenderDevice();
 
-		render_device.deleteCachedParameterGroup(*_red_material);
-		render_device.deleteCachedParameterGroup(*_ground_material);
-		render_device.deleteCachedParameterGroup(*_fence_material);
-		render_device.deleteCachedParameterGroup(*_player_box_material);
+		render_device.deleteCachedParameterGroup(*_red_material.params);
+		render_device.deleteCachedParameterGroup(*_ground_material.params);
+		render_device.deleteCachedParameterGroup(*_fence_material.params);
+		render_device.deleteCachedParameterGroup(*_player_material.params);
 
 		for(int i = 0; i < NUM_TEST_COLORS; i++)
 		{
-			render_device.deleteCachedParameterGroup(*_test_materials[i]);
+			render_device.deleteCachedParameterGroup(*_test_materials[i].params);
 		}
+
+		render_device.deleteCachedParameterGroup(*_metal1.params);
+		render_device.deleteCachedParameterGroup(*_metal2.params);
+		render_device.deleteCachedParameterGroup(*_metal3.params);
 
 		render_device.deleteParameterGroup(*_main_allocator, *_kernel_params);
 
@@ -1043,44 +1032,162 @@ private:
 		auto model_shader = _renderer.getShaderManager()->getRenderShader(getStringID("data/shaders/model.cshader"));
 
 		auto model_material_params_desc_set = model_shader->getMaterialParameterGroupDescSet();
-		auto model_material_params_desc     = getParameterGroupDesc(*model_material_params_desc_set, 0);
 
 		//Red material
 		{
+			Permutation permutation;
+
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
+
 			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-				*model_material_params_desc, UINT32_MAX, 0, nullptr);
+															 *params_desc, UINT32_MAX, 0, nullptr);
 
 			char* cbuffer_data = (char*)params->getCBuffersData();
 
 			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 0.0f, 0.0f); //diffuse color
 			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);  //f0 + roughness
 
-			_red_material = render_device.cacheParameterGroup(*params);
+			_red_material.params      = render_device.cacheParameterGroup(*params);
+			_red_material.permutation = permutation;
 
 			render_device.deleteParameterGroup(*_main_allocator, *params);
 		}
 
 		//Ground material
 		{
-			Permutation ground_material_permutation;
-			ground_material_permutation = enableOption(*model_material_params_desc_set, getStringID("CHECKBOARD"), ground_material_permutation);
-			auto ground_material_params_desc = getParameterGroupDesc(*model_material_params_desc_set, ground_material_permutation);
+			Permutation permutation;
+			permutation      = enableOption(*model_material_params_desc_set, getStringID("CHECKBOARD"), permutation);
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
 
-			auto ground_material_params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
-				*ground_material_params_desc, UINT32_MAX, 0, nullptr);
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+															 *params_desc, UINT32_MAX, 0, nullptr);
 
-			char* cbuffer_data = (char*)ground_material_params->getCBuffersData();
+			char* cbuffer_data = (char*)params->getCBuffersData();
 
 			*(Vector3*)(cbuffer_data) = Vector3(0.2f, 0.2f, 0.2f); //diffuse color
-			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);		//f0 + roughness
+			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.5f);  //f0 + roughness
 
-			_ground_material = render_device.cacheParameterGroup(*ground_material_params);
+			_ground_material.params = render_device.cacheParameterGroup(*params);
 
-			render_device.deleteParameterGroup(*_main_allocator, *ground_material_params);
+			render_device.deleteParameterGroup(*_main_allocator, *params);
 
-			Material material;
-			material.permutation = ground_material_permutation;
-			material.params = _ground_material;
+			_ground_material.permutation = permutation;
+		}
+
+		// Fence material
+		{
+			Permutation permutation;
+			permutation = enableOption(*model_material_params_desc_set, getStringID("TWO_SIDED"), permutation);
+			permutation = enableOption(*model_material_params_desc_set, getStringID("DIFFUSE_MAP"), permutation);
+			permutation = enableOption(*model_material_params_desc_set, getStringID("ALPHA_MASKED"), permutation);
+			permutation = enableOption(*model_material_params_desc_set, getStringID("TILING"), permutation);
+
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
+
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+															 *params_desc, UINT32_MAX, 0, nullptr);
+
+			char* cbuffer_data = (char*)params->getCBuffersData();
+
+			*(Vector2*)(cbuffer_data) = Vector2(0.1f, 0.5f); //f0 + roughness
+
+			u32 offset = params_desc->getConstantOffset(getStringID("tiling_scale"));
+
+			*(Vector2*)(cbuffer_data + offset) = Vector2(4.0f, 20.0f);
+
+			auto fence_data_size = file2::getFileSize("data/textures/fence.dds");
+
+			char* fence_texture_data = (char*)_scratchpad_allocator->allocate(fence_data_size);
+
+			file2::readFile("data/textures/fence.dds", fence_texture_data);
+
+			_texture_manager.create(getStringID("fence"), fence_texture_data, fence_data_size);
+			auto fence_texture = _texture_manager.getTexture(getStringID("fence"));
+
+			params->setSRV(fence_texture, 0);
+
+			_fence_material.params = render_device.cacheParameterGroup(*params);
+
+			render_device.deleteParameterGroup(*_main_allocator, *params);
+;
+			_fence_material.permutation = permutation;
+		}
+
+		//Player material
+		{
+			Permutation permutation;
+
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
+
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+															 *params_desc, UINT32_MAX, 0, nullptr);
+
+			char* cbuffer_data = (char*)params->getCBuffersData();
+
+			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 1.0f, 1.0f); //diffuse color
+			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.1f);  //f0 + roughness
+
+			_player_material.params = render_device.cacheParameterGroup(*params);
+
+			render_device.deleteParameterGroup(*_main_allocator, *params);
+
+			_player_material.permutation = permutation;
+		}
+
+		// Create colorful test materials
+		{
+			Permutation permutation;
+
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
+
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+															 *params_desc, UINT32_MAX, 0, nullptr);
+
+			for(int i = 0; i < NUM_TEST_COLORS; i++)
+			{
+				Vector3* color = (Vector3*)params->getCBuffersData();
+				*color         = TEST_COLORS[i%NUM_TEST_COLORS];
+
+				if(i % 2)
+					*(Vector2*)(color + 1) = Vector2(0.1f, 0.3f);
+				else
+					*(Vector2*)(color + 1) = Vector2(0.1f, 0.8f);
+
+				_test_materials[i].params      = render_device.cacheParameterGroup(*params);
+				_test_materials[i].permutation = permutation;
+			}
+
+			render_device.deleteParameterGroup(*_main_allocator, *params);
+		}
+
+		//Metal materials
+		{
+			Permutation permutation;
+
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
+
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+															 *params_desc, UINT32_MAX, 0, nullptr);
+
+			char* cbuffer_data = (char*)params->getCBuffersData();
+
+			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 1.0f, 1.0f); //diffuse color
+			*(Vector2*)(cbuffer_data + 12) = Vector2(1.0f, 0.1f);  //f0 + roughness
+
+			_metal1.params      = render_device.cacheParameterGroup(*params);
+			_metal1.permutation = permutation;
+
+			*(Vector2*)(cbuffer_data + 12) = Vector2(1.0f, 0.3f);  //f0 + roughness
+
+			_metal2.params      = render_device.cacheParameterGroup(*params);
+			_metal2.permutation = permutation;
+
+			*(Vector2*)(cbuffer_data + 12) = Vector2(1.0f, 0.6f);  //f0 + roughness
+
+			_metal3.params      = render_device.cacheParameterGroup(*params);
+			_metal3.permutation = permutation;
+
+			render_device.deleteParameterGroup(*_main_allocator, *params);			
 		}
 	}
 
@@ -1153,14 +1260,15 @@ private:
 	float _runtime;
 	u32 _frame_num;
 
-	Material _red_material2;
+	Material _red_material;
+	Material _ground_material;
+	Material _fence_material;
+	Material _player_material;
+	Material _test_materials[NUM_TEST_COLORS];
 
-	CachedParameterGroup* _red_material;
-	CachedParameterGroup* _ground_material;
-	CachedParameterGroup* _fence_material;
-	CachedParameterGroup* _player_box_material;
-
-	CachedParameterGroup* _test_materials[NUM_TEST_COLORS];
+	Material _metal1;
+	Material _metal2;
+	Material _metal3;
 
 	Entity _sun;
 	Entity _player_box;

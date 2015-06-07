@@ -59,9 +59,10 @@ namespace aqua
 	*/
 	struct Material
 	{
-		Permutation					permutation;
-		const CachedParameterGroup* params;
-		const ParameterGroupDesc*	desc;
+		Permutation			  permutation;
+		CachedParameterGroup* params;
+		//const CachedParameterGroup* params;
+		//const ParameterGroupDesc*	desc;
 	};
 
 	struct AABB
