@@ -17,7 +17,7 @@ instance =
 	{
 		InstanceCB = 
 		{
-			//input_texel_size = float2
+			one_over_texture_size = float2
 			project_to_pixel = float4x4
 			z_thickness		 = float
 		}
@@ -238,36 +238,23 @@ snippets =
 
 			float4 ps_main( PS_INPUT input) : SV_TARGET0
 			{
-				/*
-				float4 output = 0.0f;
-
-				//output.rgb = input_texture.Sample(tri_point_clamp_sampler, input.tex_coord).rgb;
-				output.rgb = input_texture.Load(uint3(input.position.xy, 0)).rgb;
-
-				return output;
-				*/
-
-				//float3 color  = color_texture.Load(uint3(input.position.xy, 0)).rgb;
 				float3 normal = GBUFFER_GET_VS_NORMAL( normal_texture.Load(uint3(input.position.xy, 0)) );
 				float  depth  = depth_texture.Load(uint3(input.position.xy, 0)).x;
 
 				depth = convertProjDepthToView(depth);
 
-				//float3 position = camera_position + input.view_ray * depth;
 				float3 position = input.view_ray * depth;
 
-				//position = mul(float4(position, 1.0f), inv_view).xyz;
-
 				float3 ray_dir = normalize( reflect(normalize(position), normalize(normal)) );
-
+/*
 				float4 p = float4(position + ray_dir, 1.0f);
 				p = mul(p, proj);
 				p /= p.w;
 
 				p.xy = p.xy * float2(0.5f, -0.5f) + 0.5f;
 
-				//return color_texture.Sample(tri_linear_clamp_sampler, p.xy).rgb;
-
+				return color_texture.Sample(tri_linear_clamp_sampler, p.xy).rgb;
+*/
 				float2 hit_pixel;
 				float3 hit_point;
 				float step_count;
@@ -278,7 +265,16 @@ snippets =
 				{
 					//step_count /= 10;
 					//return step_count;
-					return float4(color_texture.Load(uint3(hit_pixel, 0)).rgb, 1.0f);
+
+					//fade reflections near screen edges
+					float dist = distance(hit_pixel*one_over_texture_size, float2(0.5f, 0.5f)) * 2.0f;
+
+					static const float FADE_START = 0.5f;
+					static const float FADE_END = 1.0f;
+
+					float alpha = 1.0f - saturate( (dist - FADE_START) / (FADE_END - FADE_START) );
+
+					return float4(color_texture.Load(uint3(hit_pixel, 0)).rgb, alpha);
 				}
 				else
 					//return float3(0.01f, 0.01f, 0.01f) * color_texture.Load(uint3(0, 0, 0)).rgb;

@@ -109,21 +109,22 @@ void ScreenSpaceReflections::init(aqua::Renderer& renderer, lua_State* lua_state
 	_ssr_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
 																	 *_ssr_params_desc, UINT32_MAX, 0, nullptr);
 
-	// Horizontal blur
-	auto horizontal_blur_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/screen_space_reflections_blur.cshader"));
-	_horizontal_blur_shader_permutation = horizontal_blur_shader->getPermutation(0);
+	//Blur shaders
+	auto blur_shader = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/screen_space_reflections_blur.cshader"));
 
-	auto horizontal_blur_params_desc_set = horizontal_blur_shader->getInstanceParameterGroupDescSet();
+	// Horizontal blur
+	_horizontal_blur_shader_permutation = blur_shader->getPermutation(0);
+
+	auto horizontal_blur_params_desc_set = blur_shader->getInstanceParameterGroupDescSet();
 	_horizontal_blur_params_desc         = getParameterGroupDesc(*horizontal_blur_params_desc_set, 0);
 
 	_horizontal_blur_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-		*_horizontal_blur_params_desc, UINT32_MAX, 0, nullptr);
+																				 *_horizontal_blur_params_desc, UINT32_MAX, 0, nullptr);
 
 	// Vertical blur
-	auto vertical_blur_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/screen_space_reflections_blur.cshader"));
-	_vertical_blur_shader_permutation = vertical_blur_shader->getPermutation(1);
+	_vertical_blur_shader_permutation = blur_shader->getPermutation(1);
 
-	auto vertical_blur_params_desc_set = vertical_blur_shader->getInstanceParameterGroupDescSet();
+	auto vertical_blur_params_desc_set = blur_shader->getInstanceParameterGroupDescSet();
 	_vertical_blur_params_desc         = getParameterGroupDesc(*vertical_blur_params_desc_set, 1);
 
 	_vertical_blur_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
@@ -199,7 +200,7 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		Matrix4x4 project_to_pixel = args.camera->getProj();
 
 		// Apply the scale/offset/bias matrix, which transforms from [-1,1]
-		// post-projection space to [0,1] UV spac
+		// post-projection space to [0,1] UV space
 		Matrix4x4 tex_scale = Matrix4x4(Vector4(0.5f, 0.0f, 0.0f, 0.0f),
 										Vector4(0.0f, -0.5f, 0.0f, 0.0f),
 										Vector4(0.0f, 0.0f, 1.0f, 0.0f),
@@ -212,10 +213,11 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 
 		project_to_pixel = project_to_pixel * tex_scale * size_scale;
 
-		//project_to_pixel._11 *= _width;
-		//project_to_pixel._22 *= _height;
+		u32 offset                     = _ssr_params_desc->getConstantOffset(getStringID("one_over_texture_size"));
+		Vector2* one_over_texture_size = (Vector2*)pointer_math::add(_ssr_params->getCBuffersData(), offset);
+		*one_over_texture_size         = Vector2(1.0f / _width, 1.0f / _height);
 		
-		u32 offset     = _ssr_params_desc->getConstantOffset(getStringID("project_to_pixel"));
+		offset         = _ssr_params_desc->getConstantOffset(getStringID("project_to_pixel"));
 		Matrix4x4* p2p = (Matrix4x4*)pointer_math::add(_ssr_params->getCBuffersData(), offset);
 		*p2p           = project_to_pixel;
 
@@ -278,7 +280,6 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 			u32 width  = max(1, floor(1280 / pow(2, i)));
 			u32 height = max(1, floor(720 / pow(2, i)));
 
-			//*one_over_texture_size = Vector2(1.0f / widths[1], 1.0f / heights[1]);
 			*one_over_texture_size = Vector2(1.0f / width, 1.0f / height);
 
 			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
@@ -321,7 +322,6 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 			u32 width  = max(1, floor(1280 / pow(2, i)));
 			u32 height = max(1, floor(720 / pow(2, i)));
 
-			//*one_over_texture_size = Vector2(1.0f / widths[1], 1.0f / heights[1]);
 			*one_over_texture_size = Vector2(1.0f / width, 1.0f / height);
 
 			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
@@ -355,34 +355,7 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		_composite_params->setSRV(_reflection_target_sr[NUM_GLOSSINESS_MIPS], 1);
 		_composite_params->setSRV(args.normal_texture, 2);
 		//_composite_params->setSRV(args.depth_texture, 3);
-		/*
-		Matrix4x4 project_to_pixel = args.camera->getProj();
-
-		// Apply the scale/offset/bias matrix, which transforms from [-1,1]
-		// post-projection space to [0,1] UV spac
-		Matrix4x4 tex_scale = Matrix4x4(Vector4(0.5f, 0.0f, 0.0f, 0.0f),
-			Vector4(0.0f, -0.5f, 0.0f, 0.0f),
-			Vector4(0.0f, 0.0f, 1.0f, 0.0f),
-			Vector4(0.5f, 0.5f, 0.0f, 1.0f));
-
-		Matrix4x4 size_scale = Matrix4x4(Vector4(_width, 0.0f, 0.0f, 0.0f),
-			Vector4(0.0f, _height, 0.0f, 0.0f),
-			Vector4(0.0f, 0.0f, 1.0f, 0.0f),
-			Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-
-		project_to_pixel = project_to_pixel * tex_scale * size_scale;
-
-		//project_to_pixel._11 *= _width;
-		//project_to_pixel._22 *= _height;
-
-		u32 offset = _ssr_params_desc->getConstantOffset(getStringID("project_to_pixel"));
-		Matrix4x4* p2p = (Matrix4x4*)pointer_math::add(_composite_params->getCBuffersData(), offset);
-		*p2p = project_to_pixel;
-
-		offset = _ssr_params_desc->getConstantOffset(getStringID("z_thickness"));
-		float* z_thickness = (float*)pointer_math::add(_composite_params->getCBuffersData(), offset);
-		*z_thickness = 0.2f;
-		*/
+		
 		DrawCall dc = createDrawCall(false, 3, 0, 0);
 
 		Mesh mesh;
