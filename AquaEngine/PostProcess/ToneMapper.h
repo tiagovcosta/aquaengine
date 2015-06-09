@@ -43,6 +43,15 @@ public:
 		_allocator      = &allocator;
 		_temp_allocator = &temp_allocator;
 
+		_width  = width;
+		_height = height;
+
+		_luminance_width  = _width / 2;
+		_luminance_height = _height / 2;
+
+		_bloom_width  = _width / 2;
+		_bloom_height = _height / 2;
+
 		//------------------------------------------------------------------------------------------------
 		// TEXTURES
 		//------------------------------------------------------------------------------------------------
@@ -51,13 +60,10 @@ public:
 
 		// LUMINANCE TARGET
 
-		const u32 LUMINANCE_WIDTH  = width / 2;
-		const u32 LUMINANCE_HEIGHT = height / 2;
+		u32 num_mip_levels = 1 + (u32)std::floor(log2(max(_luminance_width, _luminance_height)));
 
-		u32 num_mip_levels = 1 + (u32)std::floor(log2(max(LUMINANCE_WIDTH, LUMINANCE_HEIGHT)));
-
-		texture_desc.width          = LUMINANCE_WIDTH;
-		texture_desc.height         = LUMINANCE_HEIGHT;
+		texture_desc.width          = _luminance_width;
+		texture_desc.height         = _luminance_height;
 		texture_desc.mip_levels     = num_mip_levels;
 		texture_desc.array_size     = 1;
 		texture_desc.format         = RenderResourceFormat::R16_FLOAT;
@@ -94,13 +100,11 @@ public:
 
 		//const float prev_luminance_clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		//_renderer->getRenderDevice()->clearRenderTarget(_prev_avg_luminance_target, prev_luminance_clear);
+
 		{
 			// BRIGHT PASS TARGET
-
-			static const u32 NUM_BLOOM_MIPS = 5;
-
-			texture_desc.width          = width / 2;
-			texture_desc.height         = height / 2;
+			texture_desc.width          = _bloom_width;
+			texture_desc.height         = _bloom_height;
 			texture_desc.mip_levels     = NUM_BLOOM_MIPS;
 			texture_desc.array_size     = 1;
 			//texture_desc.format         = RenderResourceFormat::RGBA16_FLOAT;
@@ -148,7 +152,6 @@ public:
 
 		_luminance_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
 																			   *_luminance_params_desc, UINT32_MAX, 0, nullptr);
-		//_luminance_params->setSRV(_normal_buffer_sr, 0);
 
 		//Eye adapt
 		auto eye_adapt_shader = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/eye_adapt.cshader"));
@@ -201,7 +204,6 @@ public:
 
 		_tonemap_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
 																			 *_tonemap_params_desc, UINT32_MAX, 0, nullptr);
-		//_tonemap_params->setSRV(_lighting_buffer_sr, 0);
 	};
 
 	void shutdown()
@@ -215,7 +217,7 @@ public:
 		render_device.deleteParameterGroup(*_allocator, *_eye_adapt_params);
 		render_device.deleteParameterGroup(*_allocator, *_luminance_params);
 
-		for(u32 i = 0; i < 5; i++)
+		for(u32 i = 0; i < NUM_BLOOM_MIPS; i++)
 		{
 			RenderDevice::release(_bright_pass_target[i]);
 			RenderDevice::release(_bright_pass_target_sr[i]);
@@ -224,7 +226,7 @@ public:
 			RenderDevice::release(_bloom_sr[i]);
 		}
 
-		RenderDevice::release(_bright_pass_target_sr[5]);
+		RenderDevice::release(_bright_pass_target_sr[NUM_BLOOM_MIPS]);
 
 		RenderDevice::release(_avg_luminance_target);
 		RenderDevice::release(_avg_luminance_target_sr);
@@ -269,7 +271,7 @@ public:
 
 			Vector2* input_texel_size = (Vector2*)pointer_math::add(_luminance_params->getCBuffersData(), offset);
 
-			*input_texel_size = Vector2(1.0f / 1280, 1.0f / 720);
+			*input_texel_size = Vector2(1.0f / _width, 1.0f / _height);
 
 			Mesh mesh;
 			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
@@ -282,12 +284,12 @@ public:
 			render_item.material_params = nullptr;
 			render_item.mesh            = &mesh;
 
-			_renderer->setViewport(*args.viewport, 1280/2, 720/2);
+			_renderer->setViewport(*args.viewport, _luminance_width, _luminance_width);
 
 			RenderTexture rt;
 			rt.render_target = _luminance_target;
-			rt.width         = 1280;
-			rt.height        = 720;
+			rt.width         = _luminance_width;
+			rt.height        = _luminance_width;
 
 			_renderer->setRenderTarget(1, &rt, nullptr);
 			//_renderer->setRenderTarget(1, args.target, nullptr);
@@ -375,16 +377,14 @@ public:
 			render_item.material_params = nullptr;
 			render_item.mesh            = &mesh;
 
-			_renderer->setViewport(*args.viewport, 1280 / 2, 720 / 2);
+			_renderer->setViewport(*args.viewport, _bloom_width, _bloom_height);
 			
 			RenderTexture rt;
 			rt.render_target = _bright_pass_target[0];
-			rt.width         = 1280 / 2;
-			rt.height        = 720 / 2;
+			rt.width         = _bloom_width;
+			rt.height        = _bloom_height;
 
 			_renderer->setRenderTarget(1, &rt, nullptr);
-			
-			//_renderer->setRenderTarget(1, , nullptr);
 
 			_renderer->render(render_item);
 
@@ -396,33 +396,16 @@ public:
 		//-----------------------------------------------
 		// BLUR
 		//-----------------------------------------------
+		
+		_renderer->getRenderDevice()->unbindResources();
 
+		_renderer->bindFrameParameters();
+		_renderer->bindViewParameters();
+
+		//Horizontal
 		{
-			//scope_id = profiler->beginScope("blur");
-
-			u32 width = 1280;
-			u32 height = 720;
-
-			u32 widths[]  = { 1280 / 2, 1280 / 4, 1280 / 8, 1280 / 16, 1280 / 32 };
-			u32 heights[] = { 720 / 2, 720 / 4, 720 / 8, 720 / 16, 720 / 32 };
-
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
-			//Horizontal
-
 			DrawCall dc = createDrawCall(false, 3, 0, 0);
 
-			_horizontal_blur_params->setSRV(_bright_pass_target_sr[4], 0);
-			
-			u32 offset = _horizontal_blur_params_desc->getConstantOffset(getStringID("one_over_texture_size"));
-
-			Vector2* one_over_texture_size = (Vector2*)pointer_math::add(_horizontal_blur_params->getCBuffersData(), offset);
-
-			*one_over_texture_size = Vector2(1.0f / widths[4], 1.0f / heights[4]);
-			
 			Mesh mesh;
 			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
@@ -430,220 +413,87 @@ public:
 			render_item.draw_call       = &dc;
 			render_item.num_instances   = 1;
 			render_item.shader          = _horizontal_blur_shader_permutation[0];
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
 			render_item.material_params = nullptr;
 			render_item.mesh            = &mesh;
 
-			_renderer->setViewport(*args.viewport, widths[4], heights[4]);
+			u32 offset = _horizontal_blur_params_desc->getConstantOffset(getStringID("one_over_texture_size"));
 
-			RenderTexture rt;
-			rt.render_target = _bloom_target[4];
-			rt.width         = widths[4];
-			rt.height        = heights[4];
+			Vector2* one_over_texture_size = (Vector2*)pointer_math::add(_horizontal_blur_params->getCBuffersData(), offset);
 
-			_renderer->setRenderTarget(1, &rt, nullptr);
+			for(int i = NUM_BLOOM_MIPS - 1; i >= 0; i--)
+			{
+				_horizontal_blur_params->setSRV(_bright_pass_target_sr[i], 0);
 
-			_renderer->render(render_item);
+				u32 width  = max(1, floor(_bloom_width / pow(2, i)));
+				u32 height = max(1, floor(_bloom_height / pow(2, i)));
 
-			//profiler->endScope(scope_id);
+				*one_over_texture_size = Vector2(1.0f / width, 1.0f / height);
 
-			// 3
+				render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
 
-			_horizontal_blur_params->setSRV(_bright_pass_target_sr[3], 0);
+				_renderer->setViewport(*args.viewport, width, height);
 
-			*one_over_texture_size = Vector2(1.0f / widths[3], 1.0f / heights[3]);
+				RenderTexture rt;
+				rt.render_target = _bloom_target[i];
+				rt.width         = width;
+				rt.height        = height;
 
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
+				_renderer->setRenderTarget(1, &rt, nullptr);
 
-			_renderer->setViewport(*args.viewport, widths[3], heights[3]);
+				_renderer->render(render_item);
+			}
+		}
 
-			rt.render_target = _bloom_target[3];
-			rt.width         = widths[3];
-			rt.height        = heights[3];
+		// Vertical
+		{
+			DrawCall dc = createDrawCall(false, 3, 0, 0);
 
-			_renderer->setRenderTarget(1, &rt, nullptr);
+			Mesh mesh;
+			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
-			_renderer->render(render_item);
-
-			// 2
-
-			_horizontal_blur_params->setSRV(_bright_pass_target_sr[2], 0);
-
-			*one_over_texture_size = Vector2(1.0f / widths[2], 1.0f / heights[2]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[2], heights[2]);
-
-			rt.render_target = _bloom_target[2];
-			rt.width         = widths[2];
-			rt.height        = heights[2];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			// 1
-
-			_horizontal_blur_params->setSRV(_bright_pass_target_sr[1], 0);
-
-			*one_over_texture_size = Vector2(1.0f / widths[1], 1.0f / heights[1]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[1], heights[1]);
-
-			rt.render_target = _bloom_target[1];
-			rt.width         = widths[1];
-			rt.height        = heights[1];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			// 0
-
-			_horizontal_blur_params->setSRV(_bright_pass_target_sr[0], 0);
-
-			*one_over_texture_size = Vector2(1.0f / widths[0], 1.0f / heights[0]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[0], heights[0]);
-
-			rt.render_target = _bloom_target[0];
-			rt.width         = widths[0];
-			rt.height        = heights[0];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			// Vertical
-
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
+			RenderItem render_item;
+			render_item.draw_call       = &dc;
+			render_item.num_instances   = 1;
 			render_item.shader          = _vertical_blur_shader_permutation[0];
+			render_item.material_params = nullptr;
+			render_item.mesh            = &mesh;
 
-			one_over_texture_size = (Vector2*)pointer_math::add(_vertical_blur_params->getCBuffersData(), offset);
+			u32 offset = _vertical_blur_params_desc->getConstantOffset(getStringID("one_over_texture_size"));
 
-			// 4
+			Vector2* one_over_texture_size = (Vector2*)pointer_math::add(_vertical_blur_params->getCBuffersData(), offset);
 
-			_vertical_blur_params->setSRV(_bloom_sr[4], 0);
-			_vertical_blur_params->setSRV(nullptr, 1);
+			for(int i = NUM_BLOOM_MIPS - 1; i >= 0; i--)
+			{
+				_renderer->getRenderDevice()->unbindResources();
 
-			*one_over_texture_size = Vector2(1.0f / widths[4], 1.0f / heights[4]);
+				_renderer->bindFrameParameters();
+				_renderer->bindViewParameters();
 
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
+				_vertical_blur_params->setSRV(_bloom_sr[i], 0);
 
-			_renderer->setViewport(*args.viewport, widths[4], heights[4]);
+				if(i == NUM_BLOOM_MIPS - 1)
+					_vertical_blur_params->setSRV(nullptr, 1);
+				else
+					_vertical_blur_params->setSRV(_bright_pass_target_sr[i+1], 1);
 
-			rt.render_target = _bright_pass_target[4];
-			rt.width         = widths[4];
-			rt.height        = heights[4];
+				u32 width = max(1, floor(_bloom_width / pow(2, i)));
+				u32 height = max(1, floor(_bloom_height / pow(2, i)));
 
-			_renderer->setRenderTarget(1, &rt, nullptr);
+				*one_over_texture_size = Vector2(1.0f / width, 1.0f / height);
 
-			_renderer->render(render_item);
+				render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
 
-			// 3
+				_renderer->setViewport(*args.viewport, width, height);
 
-			_renderer->getRenderDevice()->unbindResources();
+				RenderTexture rt;
+				rt.render_target = _bright_pass_target[i];
+				rt.width         = width;
+				rt.height        = height;
 
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
+				_renderer->setRenderTarget(1, &rt, nullptr);
 
-			_vertical_blur_params->setSRV(_bloom_sr[3], 0);
-			_vertical_blur_params->setSRV(_bright_pass_target_sr[4], 1);
-
-			*one_over_texture_size = Vector2(1.0f / widths[3], 1.0f / heights[3]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[3], heights[3]);
-
-			rt.render_target = _bright_pass_target[3];
-			rt.width         = widths[3];
-			rt.height        = heights[3];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			// 2
-
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
-			_vertical_blur_params->setSRV(_bloom_sr[2], 0);
-			_vertical_blur_params->setSRV(_bright_pass_target_sr[3], 1);
-
-			*one_over_texture_size = Vector2(1.0f / widths[2], 1.0f / heights[2]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[2], heights[2]);
-
-			rt.render_target = _bright_pass_target[2];
-			rt.width         = widths[2];
-			rt.height        = heights[2];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			// 1
-
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
-			_vertical_blur_params->setSRV(_bloom_sr[1], 0);
-			_vertical_blur_params->setSRV(_bright_pass_target_sr[2], 1);
-
-			*one_over_texture_size = Vector2(1.0f / widths[1], 1.0f / heights[1]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[1], heights[1]);
-
-			rt.render_target = _bright_pass_target[1];
-			rt.width         = widths[1];
-			rt.height        = heights[1];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			// 0
-
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
-			_vertical_blur_params->setSRV(_bloom_sr[0], 0);
-			_vertical_blur_params->setSRV(_bright_pass_target_sr[1], 1);
-
-			*one_over_texture_size = Vector2(1.0f / widths[0], 1.0f / heights[0]);
-
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_vertical_blur_params);
-
-			_renderer->setViewport(*args.viewport, widths[0], heights[0]);
-
-			rt.render_target = _bright_pass_target[0];
-			rt.width         = widths[0];
-			rt.height        = heights[0];
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
+				_renderer->render(render_item);
+			}
 		}
 
 		//-----------------------------------------------
@@ -663,13 +513,7 @@ public:
 			_tonemap_params->setSRV(args.source, 0);
 			_tonemap_params->setSRV(_avg_luminance_target_sr, 1);
 			_tonemap_params->setSRV(_bright_pass_target_sr[0], 2);
-			/*
-			u32 offset = _tonemap_params_desc->getConstantOffset(getStringID("input_texel_size"));
 
-			Vector2* input_texel_size = (Vector2*)pointer_math::add(_tonemap_params->getCBuffersData(), offset);
-
-			*input_texel_size = Vector2(1.0f / 1280, 1.0f / 720);
-			*/
 			Mesh mesh;
 			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
@@ -682,14 +526,7 @@ public:
 			render_item.mesh            = &mesh;
 
 			_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
-			/*
-			RenderTexture rt;
-			rt.render_target = _luminance_target;
-			rt.width = 1280;
-			rt.height = 720;
 
-			_renderer->setRenderTarget(1, &rt, nullptr);
-			*/
 			_renderer->setRenderTarget(1, args.target, nullptr);
 
 			_renderer->render(render_item);
@@ -727,11 +564,13 @@ private:
 	RenderTargetH       _prev_avg_luminance_target;
 	ShaderResourceH		_prev_avg_luminance_target_sr;
 
-	RenderTargetH       _bright_pass_target[5];
-	ShaderResourceH		_bright_pass_target_sr[6];
+	static const u32	NUM_BLOOM_MIPS = 5;
 
-	RenderTargetH       _bloom_target[5];
-	ShaderResourceH		_bloom_sr[5];
+	RenderTargetH       _bright_pass_target[NUM_BLOOM_MIPS];
+	ShaderResourceH		_bright_pass_target_sr[NUM_BLOOM_MIPS + 1];
+
+	RenderTargetH       _bloom_target[NUM_BLOOM_MIPS];
+	ShaderResourceH		_bloom_sr[NUM_BLOOM_MIPS];
 
 	ShaderPermutation         _luminance_shader_permutation;
 	const ParameterGroupDesc* _luminance_params_desc;
@@ -756,4 +595,13 @@ private:
 	ShaderPermutation         _tonemap_shader_permutation;
 	const ParameterGroupDesc* _tonemap_params_desc;
 	ParameterGroup*           _tonemap_params;
+
+	u32 _width;
+	u32 _height;
+
+	u32 _luminance_width;
+	u32 _luminance_height;
+
+	u32 _bloom_width;
+	u32 _bloom_height;
 };
