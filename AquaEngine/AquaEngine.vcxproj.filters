@@ -225,6 +225,9 @@
     <ClInclude Include="Renderer\MaterialsManager.h">
       <Filter>Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="Generators\ScreenSpaceReflections.h">
+      <Filter>Generators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Allocators\Allocator.cpp">
@@ -338,6 +341,9 @@
     </ClCompile>
     <ClCompile Include="Resources\FontManager.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Generators\ScreenSpaceReflections.cpp">
+      <Filter>Generators</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

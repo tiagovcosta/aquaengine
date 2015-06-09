@@ -272,11 +272,12 @@ snippets =
 				#endif
 				
 				#if !NORMAL_MAP
-					//input.normal *= !is_front_face * -1.0f;
-
+					
+					input.normal = is_front_face ? input.normal : -input.normal;
+/*
 					if (!is_front_face)
 						input.normal *= -1.0f; // rendering the back face, so invert the normal
-
+*/
 					GBUFFER_SET_NORMAL(output, normalize(input.normal));
 				#else
 					float3 normalT = normal_map.Sample(tri_linear_wrap_sampler, input.tex_c0).xyz;

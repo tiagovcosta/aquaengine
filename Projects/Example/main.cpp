@@ -8,6 +8,7 @@
 
 #include <Generators\CSMUtilties.h>
 #include <Generators\ShadowMapGenerator.h>
+#include <Generators\ScreenSpaceReflections.h>
 
 #include <PostProcess\DepthOfField.h>
 #include <PostProcess\ToneMapper.h>
@@ -130,6 +131,14 @@ public:
 
 		//---------------------------------------------------------------------------------
 
+		_screen_space_reflections.init(_renderer, _lua_state, *_main_allocator, *_scratchpad_allocator, _wnd_width, _wnd_height);
+
+		_renderer.addResourceGenerator(getStringID("screen_space_reflections"), &_screen_space_reflections);
+
+		
+
+		//---------------------------------------------------------------------------------
+
 		_volumetric_light_allocator = allocator::allocateNew<ProxyAllocator>(*_main_allocator, *_main_allocator);
 		_volumetric_light_manager.init(_renderer, nullptr, *_volumetric_light_allocator, *_scratchpad_allocator, *_light_manager);
 
@@ -140,7 +149,7 @@ public:
 		_main_view_allocator = allocator::allocateNew<ProxyAllocator>(*_main_allocator, *_main_allocator);
 
 		_main_view_generator.init(_renderer, _lua_state, *_main_view_allocator, *_scratchpad_allocator,
-			*_light_manager, _wnd_width, _wnd_height);
+								  *_light_manager, _wnd_width, _wnd_height);
 
 		_renderer.addResourceGenerator(getStringID("main_view_generator"), &_main_view_generator);
 
@@ -153,13 +162,11 @@ public:
 		_font_manager = allocator::allocateNew<FontManager>(*_main_allocator, *_main_allocator, render_device);
 
 		_primtive_mesh_manager = allocator::allocateNew<PrimitiveMeshManager>(*_main_allocator, *_main_allocator,
-			*_scratchpad_allocator,
-			render_device);
+																			  *_scratchpad_allocator, render_device);
 
 		//---------------------------------------------------------------------------------
 
-		_terrain = allocator::allocateNew<Terrain>(*_main_allocator, *_main_allocator,
-			*_scratchpad_allocator, _renderer);
+		_terrain = allocator::allocateNew<Terrain>(*_main_allocator, *_main_allocator, *_scratchpad_allocator, _renderer);
 
 		_renderer.addRenderQueueGenerator(getStringID("terrain"), _terrain);
 
@@ -193,7 +200,7 @@ public:
 		// INIT SCENE
 		//----------------------------------------------------------------------------------
 
-		_camera.setPerspective(75 * DirectX::XM_PI / 180, (float)1280 / 720, 0.1f, 5000.0f);
+		_camera.setPerspective(75 * DirectX::XM_PI / 180, (float)1280 / 720, 0.1f, 2000.0f);
 		_camera.update();
 
 		_camera_entity        = _entity_manager->create();
@@ -479,19 +486,28 @@ public:
 
 		_runtime = 0.0f;
 
-		TwBar *myBar;
-		myBar = TwNewBar("Example");
+		TwBar* my_bar;
+		my_bar = TwNewBar("Example");
 
-		TwAddVarRW(myBar, "Volumetric Light", TW_TYPE_BOOL8, &_enable_volumetric_light, "");
+		float bar_size[2];
 
-		TwAddVarRW(myBar, "Shoulder Strength", TW_TYPE_FLOAT, &_shoulder_strength, "step = 0.01");
-		TwAddVarRW(myBar, "Linear Strength", TW_TYPE_FLOAT, &_linear_strength, "step = 0.01");
-		TwAddVarRW(myBar, "Linear Angle", TW_TYPE_FLOAT, &_linear_angle, "step = 0.01");
-		TwAddVarRW(myBar, "Toe Strength", TW_TYPE_FLOAT, &_toe_strength, "step = 0.01");
-		TwAddVarRW(myBar, "Toe Rise", TW_TYPE_FLOAT, &_toe_rise, "step = 0.01");
-		TwAddVarRW(myBar, "Toe Run", TW_TYPE_FLOAT, &_toe_run, "step = 0.01");
-		TwAddVarRW(myBar, "Linear White", TW_TYPE_FLOAT, &_linear_white, "step = 0.01");
-		TwAddVarRW(myBar, "Middle Grey", TW_TYPE_FLOAT, &_middle_grey, "step = 0.01");
+		TwGetParam(my_bar, NULL, "size", TwParamValueType::TW_PARAM_FLOAT, 2, bar_size);
+
+		bar_size[0] = _wnd_width - bar_size[0] - 10;
+		bar_size[1] = 10;
+
+		TwSetParam(my_bar, NULL, "position", TwParamValueType::TW_PARAM_FLOAT, 2, bar_size);
+
+		TwAddVarRW(my_bar, "Volumetric Light", TW_TYPE_BOOL8, &_enable_volumetric_light, "");
+
+		TwAddVarRW(my_bar, "Shoulder Strength", TW_TYPE_FLOAT, &_shoulder_strength, "step = 0.01");
+		TwAddVarRW(my_bar, "Linear Strength", TW_TYPE_FLOAT, &_linear_strength, "step = 0.01");
+		TwAddVarRW(my_bar, "Linear Angle", TW_TYPE_FLOAT, &_linear_angle, "step = 0.01");
+		TwAddVarRW(my_bar, "Toe Strength", TW_TYPE_FLOAT, &_toe_strength, "step = 0.01");
+		TwAddVarRW(my_bar, "Toe Rise", TW_TYPE_FLOAT, &_toe_rise, "step = 0.01");
+		TwAddVarRW(my_bar, "Toe Run", TW_TYPE_FLOAT, &_toe_run, "step = 0.01");
+		TwAddVarRW(my_bar, "Linear White", TW_TYPE_FLOAT, &_linear_white, "step = 0.01");
+		TwAddVarRW(my_bar, "Middle Grey", TW_TYPE_FLOAT, &_middle_grey, "step = 0.01");
 
 		_shoulder_strength = 0.15f;
 		_linear_strength   = 0.50f;
@@ -501,13 +517,23 @@ public:
 		_toe_run           = 0.30f;
 		_linear_white      = 22.2f;
 		_middle_grey       = 0.4f;
+		
+		//---------------------------------------------------
 
-		TwAddVarRW(myBar, "Focus Plane Z", TW_TYPE_FLOAT, &_focus_plane_z, "step = 0.01");
-		TwAddVarRW(myBar, "DOF Size", TW_TYPE_FLOAT, &_dof_size, "step = 0.01");
-		TwAddVarRW(myBar, "Near Blur Transition Size", TW_TYPE_FLOAT, &_near_blur_transition_size, "step = 0.01");
-		TwAddVarRW(myBar, "Far Blur Transition Size", TW_TYPE_FLOAT, &_far_blur_transition_size, "step = 0.01");
-		TwAddVarRW(myBar, "Near Blur Radius Fraction", TW_TYPE_FLOAT, &_near_blur_radius_fraction, "step = 0.01");
-		TwAddVarRW(myBar, "Far Blur Radius Fraction", TW_TYPE_FLOAT, &_far_blur_radius_fraction, "step = 0.01");
+		TwAddVarRW(my_bar, "Screen Space Reflections", TW_TYPE_BOOL8, &_enable_ssr, "");
+		TwAddVarRW(my_bar, "SSR Thickness", TW_TYPE_FLOAT, &_thickness, "step = 0.01");
+
+		_enable_ssr = true;
+		_thickness  = 0.2f;
+
+		//---------------------------------------------------
+
+		TwAddVarRW(my_bar, "Focus Plane Z", TW_TYPE_FLOAT, &_focus_plane_z, "step = 0.01");
+		TwAddVarRW(my_bar, "DOF Size", TW_TYPE_FLOAT, &_dof_size, "step = 0.01");
+		TwAddVarRW(my_bar, "Near Blur Transition Size", TW_TYPE_FLOAT, &_near_blur_transition_size, "step = 0.01");
+		TwAddVarRW(my_bar, "Far Blur Transition Size", TW_TYPE_FLOAT, &_far_blur_transition_size, "step = 0.01");
+		TwAddVarRW(my_bar, "Near Blur Radius Fraction", TW_TYPE_FLOAT, &_near_blur_radius_fraction, "step = 0.01");
+		TwAddVarRW(my_bar, "Far Blur Radius Fraction", TW_TYPE_FLOAT, &_far_blur_radius_fraction, "step = 0.01");
 
 		_focus_plane_z             = 22.0f;
 		_dof_size                  = 20.0f;
@@ -827,6 +853,9 @@ public:
 			_middle_grey = 0.4f;
 		}
 
+		args.enable_ssr                = _enable_ssr;
+		args.thickness                 = _thickness;
+
 		args.focus_plane_z             = _focus_plane_z;
 		args.dof_size                  = _dof_size;
 		args.near_blur_transition_size = _near_blur_transition_size;
@@ -1004,6 +1033,8 @@ public:
 			allocator::deallocateDelete(*_main_allocator, _entity_manager_allocator);
 
 		//-----------------------------------------------
+
+		_screen_space_reflections.shutdown();
 
 		_shadow_map_generator.shutdown();
 
@@ -1222,6 +1253,8 @@ private:
 	ProxyAllocator*	    _shadow_map_generator_allocator;
 	ShadowMapGenerator  _shadow_map_generator;
 
+	ScreenSpaceReflections _screen_space_reflections;
+
 	ProxyAllocator* _entity_manager_allocator;
 	ProxyAllocator* _transform_manager_allocator;
 	ProxyAllocator* _physics_manager_allocator;
@@ -1286,6 +1319,10 @@ private:
 	float _toe_run;
 	float _linear_white;
 	float _middle_grey;
+
+	// SSR args
+	bool  _enable_ssr;
+	float _thickness;
 
 	// DOF args
 	float _focus_plane_z;

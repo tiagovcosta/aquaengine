@@ -8,6 +8,7 @@
 
 #include <Generators\CSMUtilties.h>
 #include <Generators\ShadowMapGenerator.h>
+#include <Generators\ScreenSpaceReflections.h>
 
 #include <PostProcess\DepthOfField.h>
 #include <PostProcess\ToneMapper.h>
@@ -35,6 +36,10 @@ public:
 		Vector3              sun_dir;
 		Vector3              sun_color;
 		ShaderResourceH		 scattering;
+
+		//SSR args
+		bool                 enable_ssr;
+		float				 thickness;
 
 		// DOF args
 		float				 focus_plane_z;
@@ -547,6 +552,33 @@ public:
 		_renderer->render(render_item);
 		*/
 
+		//-------------------------------------------------------------
+
+		ShaderResourceH ssr_output;
+
+		if(args.enable_ssr)
+		{
+			scope_id = profiler->beginScope("screen_space_reflections");
+
+			ScreenSpaceReflections::Args ssr_args;
+			ssr_args.camera         = args.camera;
+			ssr_args.color_texture  = _lighting_buffer_sr;
+			ssr_args.normal_texture = _normal_buffer_sr;
+			ssr_args.depth_texture  = _depth_target2_sr;
+			ssr_args.viewport       = args.viewport;
+			ssr_args.thickness      = args.thickness;
+			ssr_args.output         = &ssr_output;
+
+			_renderer->generateResource(getStringID("screen_space_reflections"), &ssr_args, nullptr);
+
+			profiler->endScope(scope_id);
+		}
+		else
+		{
+			ssr_output = _lighting_buffer_sr;
+		}
+		//-------------------------------------------------------------
+
 		scope_id = profiler->beginScope("depth_of_field");
 
 		RenderTexture dof;
@@ -557,7 +589,7 @@ public:
 
 		DepthOfField::Args dof_args;
 		dof_args.camera                      = args.camera;
-		dof_args.color_texture               = _lighting_buffer_sr;
+		dof_args.color_texture               = ssr_output;
 		dof_args.depth_texture               = _depth_target2_sr;
 		dof_args.target                      = &dof;
 		dof_args.viewport                    = args.viewport;
