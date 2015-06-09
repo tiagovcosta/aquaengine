@@ -1,5 +1,9 @@
 #include "Profiler.h"
 
+#if _WIN32
+#include <d3d9.h>
+#endif
+
 #include "..\Renderer\RenderDevice\RenderDevice.h"
 
 //#include "..\Core\Allocators\DynamicLinearAllocator.h"
@@ -115,6 +119,17 @@ u32 Profiler::beginScope(const char* name)
 
 	_render_device.end(scope.timestamp_start_query);
 
+#if _WIN32
+
+	const size_t size = strlen(name) + 1;
+	wchar_t wc[255];
+	//mbstowcs(wc, name, size > 255 ? 255 : size);
+
+	size_t num_chars_converted;
+	mbstowcs_s(&num_chars_converted, wc, name, _TRUNCATE);
+
+	D3DPERF_BeginEvent(D3DCOLOR_XRGB(255, 255, 255), wc);
+#endif
 	return scope_index;
 }
 
@@ -125,6 +140,7 @@ bool Profiler::endScope(u32 id)
 	Scope& scope = _frames[_current_frame].scopes[id];
 
 	_render_device.end(scope.timestamp_end_query);
+	D3DPERF_EndEvent();
 
 	_current_scope = scope.parent;
 
