@@ -377,7 +377,7 @@ snippets =
 
 
 
-			       		float3 pos_shadow = position_ws + normal * 0.1f * saturate(1.0f - cos_light_angle + 0.3f);
+			       		float3 pos_shadow = position_ws + normal * 0.3f * saturate(1.0f - cos_light_angle + 0.3f);
 			       		//float3 pos_shadow = position_ws + normal * 1.0f / SHADOW_MAP_HEIGHT;
 
 

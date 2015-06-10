@@ -5,6 +5,7 @@ frame =
 		FrameCB = 
 		{
 			delta_time = float
+			runtime = float
 
 			A = float
 			B = float

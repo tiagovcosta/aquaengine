@@ -14,7 +14,8 @@ snippets =
 		#define SHADOW_MAP_HEIGHT CASCADE_SIZE
 		#define SHADOW_MAP_SIZE float2(SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT)
 
-		#define WITNESS_PCF 1
+		#define COD_AW_FILTER 1
+		#define WITNESS_PCF 0
 		#define FilterSize_ 3
 
 		float sampleShadowCascade(in float3 position_shadow)
@@ -57,7 +58,7 @@ snippets =
 					float2 offset       = float2(x, y) * (1.0f / SHADOW_MAP_SIZE);
 					float2 sample_coord = shadow_tex_coord + offset;
 					//float sample        = clamp(shadow_map.SampleCmpLevelZero(shadow_sampler, sample_coord, shadow_depth).x, 0.0f, 1.0f);
-					float sample        = shadow_map.SampleCmpLevelZero(shadow_sampler, sample_coord, shadow_depth - 0.000f	).x;
+					float sample        = shadow_map.SampleCmpLevelZero(shadow_sampler, sample_coord, shadow_depth - 0.001f	).x;
 
 					float xWeight = 1;
 					float yWeight = 1;
@@ -78,10 +79,15 @@ snippets =
 
 			shadow_visibility /= NumSamples;
 
-			shadow_visibility = shadow_map.SampleCmpLevelZero(shadow_sampler, shadow_tex_coord, shadow_depth).x;
+			//shadow_visibility = shadow_map.SampleCmpLevelZero(shadow_sampler, shadow_tex_coord, shadow_depth).x;
 
 			return shadow_visibility;
 		}
+
+		//------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------
+
 
 		//-------------------------------------------------------------------------------------------------
 		// Helper function for SampleShadowMapOptimizedPCF
@@ -223,6 +229,70 @@ snippets =
 		    #endif
 		}
 
+		//------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------
+
+		//--------------------------------------------------------------------------------------
+		// Samples the shadow map cascades based on the world-space position,
+		// using the random rotatate disk from COD:AW (SIGGRAPH 2014)
+		//--------------------------------------------------------------------------------------
+
+		static const float3 IGN_MAGIC = float3(0.06711056f, 0.00583715f, 52.9829189);
+
+		float interleavedGradientNoise(float2 pos, float scale)
+		{
+			return -scale + 2.0f * scale * frac( IGN_MAGIC.z * frac( dot(pos, IGN_MAGIC.xy) ));
+		}
+
+		static const uint CODAW_NUM_SAMPLES = 8;
+
+		static const float2 CODAW_OFFSETS[] =
+		{
+			float2(-0.7071,  0.7071),
+			float2(-0.0000, -0.8750),
+			float2( 0.5303,  0.5303),
+			float2(-0.6250, -0.0000),
+			float2( 0.3536, -0.3536),
+			float2(-0.0000,  0.3750),
+			float2(-0.1768, -0.1768),
+			float2( 0.1250,  0.0000)
+		};
+
+		float sampleShadowMapCODAW(in float3 position_shadow)
+		{
+			float2 shadow_tex_coord = position_shadow.xy;
+			float shadow_depth      = position_shadow.z;
+
+			const int RADIUS      = 2;
+
+			float shadow_visibility = 0.0f;
+
+			//[unroll(CODAW_NUM_SAMPLES)]
+			for(uint i = 0; i < CODAW_NUM_SAMPLES; i++)
+			{
+				float2 rotation;
+
+				sincos( 2.0 * 3.1415159f * interleavedGradientNoise( shadow_tex_coord, 1.0f ), rotation.y, rotation.x );
+
+				float2x2 rotation_matrix = { rotation.x, rotation.y, -rotation.y, rotation.x };
+
+				float2 offset = mul( CODAW_OFFSETS[i], rotation_matrix ) * RADIUS * (1.0f / SHADOW_MAP_SIZE);
+
+				float2 sample_coord = shadow_tex_coord + offset;
+
+				shadow_visibility += shadow_map.SampleCmpLevelZero(shadow_sampler, sample_coord, shadow_depth - 0.000f	).x;
+			}
+
+			shadow_visibility /= CODAW_NUM_SAMPLES;
+
+			return shadow_visibility;
+		}
+
+		//------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------
+		//------------------------------------------------------------------------------------------------
+
 		//--------------------------------------------------------------------------------------
 		// Computes the visibility term by performing the shadow test
 		//--------------------------------------------------------------------------------------
@@ -247,11 +317,13 @@ snippets =
 			float4x4 shadow_matrix  = shadow_matrices[cascade_index];
 			float3 shadow_position  = mul(float4(position_ws, 1.0f), shadow_matrix).xyz;
 
-#if WITNESS_PCF
-			shadow_visibility = SampleShadowMapOptimizedPCF(shadow_position);
-#else
-			shadow_visibility = sampleShadowCascadePCF(shadow_position);
-#endif
+			#if WITNESS_PCF
+				shadow_visibility = SampleShadowMapOptimizedPCF(shadow_position);
+			#elif COD_AW_FILTER
+				shadow_visibility = sampleShadowMapCODAW(shadow_position);
+			#else
+				shadow_visibility = sampleShadowCascadePCF(shadow_position);
+			#endif
 
 			// Sample the next cascade, and blend between the two results to
 			// smooth the transition
@@ -265,6 +337,8 @@ snippets =
 
 			#if WITNESS_PCF
 				float next_split_visibility = SampleShadowMapOptimizedPCF(shadow_position);
+			#elif COD_AW_FILTER
+				float next_split_visibility = sampleShadowMapCODAW(shadow_position);
 			#else
 				float next_split_visibility = sampleShadowCascadePCF(shadow_position);
 			#endif

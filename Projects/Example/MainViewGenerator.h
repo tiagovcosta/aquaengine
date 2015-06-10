@@ -250,11 +250,16 @@ public:
 	}
 
 	u32 getSecondaryViews(const Camera& camera, RenderView* out_views) override final
-	{
+	{/*
 		_csm.cascades_end[0] = 0.001f;
 		_csm.cascades_end[1] = 0.005f;
 		_csm.cascades_end[2] = 0.01f;
 		//_csm.cascades_end[3] = 0.02f;
+		_csm.cascades_end[3] = 1.00f;
+		*/
+		_csm.cascades_end[0] = 0.025f;
+		_csm.cascades_end[1] = 0.05f;
+		_csm.cascades_end[2] = 0.50f;
 		_csm.cascades_end[3] = 1.00f;
 
 		CSMUtilities::updateCascadedShadowMap(_csm, camera, _sun_light_dir);

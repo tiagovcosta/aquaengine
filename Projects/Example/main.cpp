@@ -200,7 +200,7 @@ public:
 		// INIT SCENE
 		//----------------------------------------------------------------------------------
 
-		_camera.setPerspective(75 * DirectX::XM_PI / 180, (float)1280 / 720, 0.1f, 2000.0f);
+		_camera.setPerspective(75 * DirectX::XM_PI / 180, (float)1280 / 720, 0.1f, 200.0f);
 		_camera.update();
 
 		_camera_entity        = _entity_manager->create();
@@ -755,7 +755,7 @@ public:
 
 		// Set some frame parameters
 		_renderer.setFrameParameter(getStringID("delta_time"), &dt, sizeof(dt));
-		//_renderer.setFrameParameter(getStringID("runtime"), &_runtime, sizeof(_runtime));
+		_renderer.setFrameParameter(getStringID("runtime"), &_runtime, sizeof(_runtime));
 
 		_renderer.setFrameParameter(getStringID("A"), &_shoulder_strength, sizeof(_shoulder_strength));
 		_renderer.setFrameParameter(getStringID("B"), &_linear_strength, sizeof(_linear_strength));
