@@ -350,7 +350,7 @@ PrimitiveMeshManager::PrimitiveMeshManager(Allocator& allocator, LinearAllocator
 	_render_device.createBuffer(desc, box_indices, _box.mesh->index_buffer, nullptr, nullptr);
 
 	_box.bounding_sphere.center = Vector3(0.0f, 0.5f, 0.0f);
-	_box.bounding_sphere.radius = sqrt(2 * 0.5f*0.5f);
+	_box.bounding_sphere.radius = sqrt(3 * 0.5f*0.5f);
 	_box.permutation            = 4;
 	_box.num_subsets            = 1;
 	_box.draw_calls             = allocator::allocateArray<DrawCall>(_allocator, 1);

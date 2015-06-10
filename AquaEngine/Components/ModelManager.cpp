@@ -77,13 +77,17 @@ void ModelManager::update()
 		*world = _transform_manager->getWorld(_transform_manager->lookup(_data.entity[i]));
 
 		//update bounding sphere
-		Vector3 edge = _data.bounding_sphere2[i].center + VECTOR3_RIGHT * _data.bounding_sphere2[i].radius;
+		Vector3 scale;
+		Quaternion rotation;
+		Vector3 translation;
 
-		Vector3 world_center = Vector3::Transform(_data.bounding_sphere2[i].center, *world);
-		Vector3 world_edge   = Vector3::Transform(edge, *world);
+		world->Decompose(scale, rotation, translation);
 
-		_data.bounding_sphere[i].center = world_center;
-		_data.bounding_sphere[i].radius = (world_edge - world_center).Length();
+		float max_scale = max(scale.x, scale.y);
+		max_scale = max(max_scale, scale.z);
+
+		_data.bounding_sphere[i].center = Vector3::Transform(_data.bounding_sphere2[i].center, *world);
+		_data.bounding_sphere[i].radius = _data.bounding_sphere2[i].radius * max_scale;
 
 		//Cache instance parameter group
 		_data.cached_instance_params[i] = render_device.cacheTemporaryParameterGroup(*_data.instance_params[i]);

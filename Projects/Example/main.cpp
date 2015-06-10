@@ -503,7 +503,7 @@ public:
 		TwAddVarRW(my_bar, "SSR Thickness", TW_TYPE_FLOAT, &_thickness, "step = 0.01");
 
 		_enable_ssr = true;
-		_thickness  = 0.2f;
+		_thickness  = 1.0f;
 
 		//---------------------------------------------------
 
