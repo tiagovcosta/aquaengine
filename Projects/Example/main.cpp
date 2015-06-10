@@ -217,7 +217,7 @@ public:
 		physic_material_desc.dynamic_friction = 0.1f;
 		physic_material_desc.restitution      = 0.8f;
 
-		auto physic_material = _physics_manager->createMaterial(physic_material_desc);
+		_physic_material = _physics_manager->createMaterial(physic_material_desc);
 
 		//Get model shader parameters desc
 		auto model_shader = _renderer.getShaderManager()->getRenderShader(getStringID("data/shaders/model.cshader"));
@@ -237,7 +237,7 @@ public:
 			_model_manager->addSubset(groud_model, 0, &_ground_material);
 
 			//Ground rigid actor
-			auto ground_shape = _physics_manager->createBoxShape(100.0f, 0.5f, 100.0f, physic_material);
+			auto ground_shape = _physics_manager->createBoxShape(100.0f, 0.5f, 100.0f, _physic_material);
 
 			auto ground_rigid_actor = _physics_manager->createStatic(ground_plane, ground_shape, Vector3(0.0f, -0.5f, 0.0f));
 		}
@@ -261,7 +261,7 @@ public:
 
 			_model_manager->addSubset(box_model, 0, &_red_material);
 
-			auto physic_shape = _physics_manager->createBoxShape(SIDE_BLOCK_WIDTH / 2, SIDE_BLOCK_HEIGHT / 2, 0.5f, physic_material);
+			auto physic_shape = _physics_manager->createBoxShape(SIDE_BLOCK_WIDTH / 2, SIDE_BLOCK_HEIGHT / 2, 0.5f, _physic_material);
 			auto rigid_actor  = _physics_manager->createStatic(box, physic_shape, WALL_ORIGIN + Vector3(0.0f, SIDE_BLOCK_HEIGHT / 2, 0.0f));
 
 			//right
@@ -283,7 +283,7 @@ public:
 			const float MIDDLE_BLOCK_HEIGHT = 4.0f;
 
 			// middle physic shape
-			physic_shape = _physics_manager->createBoxShape(MIDDLE_BLOCK_WIDTH / 2, MIDDLE_BLOCK_HEIGHT / 2, 0.5f, physic_material);
+			physic_shape = _physics_manager->createBoxShape(MIDDLE_BLOCK_WIDTH / 2, MIDDLE_BLOCK_HEIGHT / 2, 0.5f, _physic_material);
 
 			//middle top
 			box           = _entity_manager->create();
@@ -344,34 +344,13 @@ public:
 			_model_manager->addSubset(fence_model, 0, &_fence_material);
 
 			//Fence rigid actor
-			auto fence_shape = _physics_manager->createBoxShape(5.0f, 1.0f, 0.01f, physic_material);
+			auto fence_shape = _physics_manager->createBoxShape(5.0f, 1.0f, 0.01f, _physic_material);
 
 			auto fence_rigid_actor = _physics_manager->createStatic(fence, fence_shape, Vector3(0.0f, 1.0f, -3.0f));
 		}
 
-		// Create many falling boxes
-		auto box_physic_shape = _physics_manager->createBoxShape(0.5f, 0.5f, 0.5f, physic_material);
+		auto box_physic_shape = _physics_manager->createBoxShape(0.5f, 0.5f, 0.5f, _physic_material);
 		_physics_manager->setShapeLocalPose(box_physic_shape, Vector3(0.0f, 0.5f, 0.0f));
-
-		const int BOX_ROW_COUNT = 30;
-
-		for(int i = 0; i < BOX_ROW_COUNT; i++)
-		{
-			for(int j = 0; j < BOX_ROW_COUNT; j++)
-			{
-				auto box = _entity_manager->create();
-				auto box_transform = _transform_manager->create(box);
-				auto box_model = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
-
-				_model_manager->addSubset(box_model, 0, &_test_materials[(i + j) % NUM_TEST_COLORS]);
-
-				float height = 50.0f + (rand() % 40) / 10.0f;
-
-				auto rigid_actor = _physics_manager->create(box, PhysicActorType::DYNAMIC, Vector3(i * 0.85f - BOX_ROW_COUNT, height, j * 0.85f));
-
-				_physics_manager->addShape(rigid_actor, box_physic_shape);
-			}
-		}
 
 		// Reflective planes
 		{
@@ -596,6 +575,11 @@ public:
 
 		_frame_num++;
 
+		if(_keys_pressed['K'])
+		{
+			spawnBoxes(10);
+		}
+
 		//Update player-controlled box
 		Vector3 offset;
 
@@ -762,6 +746,7 @@ public:
 #if ENABLE_TERRAIN
 		_terrain->updateLODs(_camera);
 #endif
+
 		//----------------------------------
 		// Render
 		//----------------------------------
@@ -921,12 +906,13 @@ public:
 		tr_args.target   = &rt;
 		tr_args.viewport = &vp;
 		tr_args.text     = "Test";
-		tr_args.x        = 0.0f;
+		tr_args.x        = 0.7f;
 		tr_args.y        = 0.8f;
 		tr_args.text     = "Controls:\n"
 						   "WSAD - Camera Movement\n"
 						   "Mouse + Right Click - Camera Rotation\n"
-						   "Arrows - Rotate Sun\n";
+						   "Arrows - Rotate Sun\n"
+						   "K - Spawn Boxes";
 
 		_text_renderer->generate(&tr_args, nullptr);
 
@@ -1222,6 +1208,30 @@ private:
 		}
 	}
 
+	void spawnBoxes(int row_count)
+	{
+		auto box_physic_shape = _physics_manager->createBoxShape(0.5f, 0.5f, 0.5f, _physic_material);
+		_physics_manager->setShapeLocalPose(box_physic_shape, Vector3(0.0f, 0.5f, 0.0f));
+
+		for(int i = 0; i < row_count; i++)
+		{
+			for(int j = 0; j < row_count; j++)
+			{
+				auto box = _entity_manager->create();
+				auto box_transform = _transform_manager->create(box);
+				auto box_model = _model_manager->create(box, _primtive_mesh_manager->getBox(), 0);
+
+				_model_manager->addSubset(box_model, 0, &_test_materials[(i + j) % NUM_TEST_COLORS]);
+
+				float height = 50.0f + (rand() % 40) / 10.0f;
+
+				auto rigid_actor = _physics_manager->create(box, PhysicActorType::DYNAMIC, Vector3(i * 0.85f - row_count, height, j * 0.85f));
+
+				_physics_manager->addShape(rigid_actor, box_physic_shape);
+			}
+		}
+	}
+
 	void updateSunSkyColor()
 	{
 		Vector3 sun_color = _dynamic_sky->getSunColor();
@@ -1307,6 +1317,8 @@ private:
 	Entity _player_box;
 
 	Vector3 _sun_color;
+
+	PhysicMaterial _physic_material;
 
 	bool _enable_volumetric_light;
 
