@@ -4,14 +4,14 @@
 ///////////////// Tiago Costa, 2015              
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "..\Renderer\Renderer.h"
-#include "..\Renderer\RendererInterfaces.h"
-#include "..\Renderer\RendererStructs.h"
-#include "..\Renderer\Camera.h"
+#include "..\..\Renderer\Renderer.h"
+#include "..\..\Renderer\RendererInterfaces.h"
+#include "..\..\Renderer\RendererStructs.h"
+#include "..\..\Renderer\Camera.h"
 
-#include "..\Utilities\StringID.h"
+#include "..\..\Utilities\StringID.h"
 
-#include "..\AquaTypes.h"
+#include "..\..\AquaTypes.h"
 
 #include <cmath>
 

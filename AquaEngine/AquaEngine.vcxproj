@@ -318,9 +318,10 @@ if not %rce%==1 exit %rce% else exit 0</Command>
     <ClInclude Include="DevTools\TextRenderer.h" />
     <ClInclude Include="DynamicSky.h" />
     <ClInclude Include="Generators\CSMUtilties.h" />
+    <ClInclude Include="Generators\PostProcess\DepthOfField.h" />
+    <ClInclude Include="Generators\PostProcess\ToneMapper.h" />
     <ClInclude Include="Generators\ScreenSpaceReflections.h" />
     <ClInclude Include="Generators\ShadowMapGenerator.h" />
-    <ClInclude Include="PostProcess\DepthOfField.h" />
     <ClInclude Include="PrimitiveMeshManager.h" />
     <ClInclude Include="Renderer\Camera.h" />
     <ClInclude Include="Renderer\ComputeShader.h" />
@@ -336,7 +337,6 @@ if not %rce%==1 exit %rce% else exit 0</Command>
     <ClInclude Include="Renderer\RendererStructs.h" />
     <ClInclude Include="Renderer\RendererUtilities.h" />
     <ClInclude Include="Renderer\ShaderManager.h" />
-    <ClInclude Include="PostProcess\ToneMapper.h" />
     <ClInclude Include="Resources\DDS.h" />
     <ClInclude Include="Resources\FontManager.h" />
     <ClInclude Include="Resources\TextureManager.h" />

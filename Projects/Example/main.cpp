@@ -10,8 +10,8 @@
 #include <Generators\ShadowMapGenerator.h>
 #include <Generators\ScreenSpaceReflections.h>
 
-#include <PostProcess\DepthOfField.h>
-#include <PostProcess\ToneMapper.h>
+#include <Generators\PostProcess\DepthOfField.h>
+#include <Generators\PostProcess\ToneMapper.h>
 
 #include <DynamicSky.h>
 #include <Terrain.h>

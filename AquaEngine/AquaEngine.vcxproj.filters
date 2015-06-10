@@ -25,14 +25,14 @@
     <Filter Include="DevTools">
       <UniqueIdentifier>{6e78169d-f40f-4780-99a7-a161cc685844}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PostProcess">
-      <UniqueIdentifier>{d9a6d6d0-c57d-4ce9-b2c3-72afc67320b3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Generators">
       <UniqueIdentifier>{1876c7c0-0c8a-481e-8b3b-dafe4f8b6f06}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{f7bacc1d-730f-430c-8e68-056264898855}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generators\PostProcess">
+      <UniqueIdentifier>{2e73e64f-27b2-4253-ad98-794065e42fa7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -188,12 +188,6 @@
       <Filter>DevTools</Filter>
     </ClInclude>
     <ClInclude Include="DynamicSky.h" />
-    <ClInclude Include="PostProcess\ToneMapper.h">
-      <Filter>PostProcess</Filter>
-    </ClInclude>
-    <ClInclude Include="PostProcess\DepthOfField.h">
-      <Filter>PostProcess</Filter>
-    </ClInclude>
     <ClInclude Include="Generators\ShadowMapGenerator.h">
       <Filter>Generators</Filter>
     </ClInclude>
@@ -227,6 +221,12 @@
     </ClInclude>
     <ClInclude Include="Generators\ScreenSpaceReflections.h">
       <Filter>Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Generators\PostProcess\DepthOfField.h">
+      <Filter>Generators\PostProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="Generators\PostProcess\ToneMapper.h">
+      <Filter>Generators\PostProcess</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
