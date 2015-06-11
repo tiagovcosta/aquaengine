@@ -131,7 +131,7 @@ void ScreenSpaceReflections::init(aqua::Renderer& renderer, lua_State* lua_state
 																			   *_vertical_blur_params_desc, UINT32_MAX, 0, nullptr);
 
 	// Composite
-	auto composite_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/screen_space_reflections_composite.cshader"));
+	auto composite_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/reflections_composite.cshader"));
 	_composite_shader_permutation = composite_shader->getPermutation(0);
 
 	auto composite_params_desc_set = composite_shader->getInstanceParameterGroupDescSet();
@@ -354,7 +354,8 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		_composite_params->setSRV(args.color_texture, 0);
 		_composite_params->setSRV(_reflection_target_sr[NUM_GLOSSINESS_MIPS], 1);
 		_composite_params->setSRV(args.normal_texture, 2);
-		//_composite_params->setSRV(args.depth_texture, 3);
+		_composite_params->setSRV(args.depth_texture, 3);
+		_composite_params->setSRV(args.material_texture, 4);
 		
 		DrawCall dc = createDrawCall(false, 3, 0, 0);
 

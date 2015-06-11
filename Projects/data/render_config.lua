@@ -21,7 +21,8 @@ render_shaders = {
 
 	"data/shaders/screen_space_reflections.cshader",
 	"data/shaders/screen_space_reflections_blur.cshader",
-	"data/shaders/screen_space_reflections_composite.cshader",
+	
+	"data/shaders/reflections_composite.cshader",
 
 	--post process
 	"data/shaders/color_coc.cshader",

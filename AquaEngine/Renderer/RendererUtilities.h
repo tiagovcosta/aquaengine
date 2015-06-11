@@ -62,7 +62,6 @@ namespace aqua
 		Permutation			  permutation;
 		CachedParameterGroup* params;
 		//const CachedParameterGroup* params;
-		//const ParameterGroupDesc*	desc;
 	};
 
 	struct AABB

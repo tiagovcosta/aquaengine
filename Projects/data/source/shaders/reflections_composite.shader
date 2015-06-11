@@ -29,6 +29,7 @@ instance =
 		reflection_texture = { type = Texture2D }
 		normal_texture = { type = Texture2D }
 		depth_texture = { type = Texture2D }
+		material_texture = { type = Texture2D }
 	}
 
 	options =
@@ -83,11 +84,36 @@ snippets =
 			{
 				float3 color = color_texture.Load(uint3(input.position.xy, 0)).rgb;
 
-				float roughness = GBUFFER_GET_ROUGHNESS( normal_texture.Load(uint3(input.position.xy, 0)) );
+				float4 normal_roughness = normal_texture.Load(uint3(input.position.xy, 0));
+
+				float3 normal   = GBUFFER_GET_VS_NORMAL( normal_roughness );
+				float roughness = GBUFFER_GET_ROUGHNESS( normal_roughness );
 
 				float4 reflection = reflection_texture.SampleLevel(tri_linear_clamp_sampler, input.tex_coord, roughness * 5);
 
-				return color + reflection.rgb * reflection.a;
+				//return color + reflection.rgb * reflection.a;
+
+				float4 color_f0 = material_texture.Load(uint3(input.position.xy, 0));
+				color_f0.rgb    = pow(color_f0.rgb, 2.2);
+				
+				float metal          = saturate(color_f0.a*2-1);
+				float non_metal_spec = saturate(color_f0.a*2)*0.2;
+				
+				float3 Ks = lerp( non_metal_spec.rrr, color_f0.rgb, metal );
+
+				float depth = depth_texture.Load(uint3(input.position.xy, 0)).x;
+
+				depth = convertProjDepthToView(depth);
+
+				float3 position_vs = input.view_ray * depth;
+
+			    float3 view_dir = normalize( camera_position - position_vs );
+
+			    float3 fresnel_specular = Ks + (1 - Ks) * pow(1-dot(view_dir, normal), 5);
+
+			    //fresnel_specular = saturate(fresnel_specular * 1000);
+
+				return color + reflection.rgb * reflection.a * fresnel_specular;
 			}
 		"""
 	}

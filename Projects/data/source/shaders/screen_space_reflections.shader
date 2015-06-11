@@ -239,7 +239,11 @@ snippets =
 			float4 ps_main( PS_INPUT input) : SV_TARGET0
 			{
 				float3 normal = GBUFFER_GET_VS_NORMAL( normal_texture.Load(uint3(input.position.xy, 0)) );
-				float  depth  = depth_texture.Load(uint3(input.position.xy, 0)).x;
+
+				if(!any(normal))
+					return float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+				float depth = depth_texture.Load(uint3(input.position.xy, 0)).x;
 
 				depth = convertProjDepthToView(depth);
 

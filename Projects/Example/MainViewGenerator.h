@@ -566,13 +566,14 @@ public:
 			scope_id = profiler->beginScope("screen_space_reflections");
 
 			ScreenSpaceReflections::Args ssr_args;
-			ssr_args.camera         = args.camera;
-			ssr_args.color_texture  = _lighting_buffer_sr;
-			ssr_args.normal_texture = _normal_buffer_sr;
-			ssr_args.depth_texture  = _depth_target2_sr;
-			ssr_args.viewport       = args.viewport;
-			ssr_args.thickness      = args.thickness;
-			ssr_args.output         = &ssr_output;
+			ssr_args.camera            = args.camera;
+			ssr_args.color_texture     = _lighting_buffer_sr;
+			ssr_args.normal_texture    = _normal_buffer_sr;
+			ssr_args.depth_texture     = _depth_target2_sr;
+			ssr_args.material_texture  = _color_buffer_sr;
+			ssr_args.viewport          = args.viewport;
+			ssr_args.thickness         = args.thickness;
+			ssr_args.output            = &ssr_output;
 
 			_renderer->generateResource(getStringID("screen_space_reflections"), &ssr_args, nullptr);
 

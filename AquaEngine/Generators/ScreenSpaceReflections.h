@@ -25,6 +25,7 @@ namespace aqua
 			ShaderResourceH color_texture;
 			ShaderResourceH normal_texture;
 			ShaderResourceH depth_texture;
+			ShaderResourceH material_texture;
 			const Camera*   camera;
 			const Viewport* viewport;
 
