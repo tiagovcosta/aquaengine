@@ -110,7 +110,7 @@ namespace aqua
 
 		PhysicShape createPlaneShape(PhysicMaterial material);
 		PhysicShape createBoxShape(float hx, float hy, float hz, PhysicMaterial material);
-		PhysicShape createSphereShape(float radius);
+		PhysicShape createSphereShape(float radius, PhysicMaterial material);
 		PhysicShape createMeshShape(const PhysicMaterialDesc& desc);
 
 		void setShapeLocalPose(PhysicShape shape, const Vector3& local_position = Vector3(), const Quaternion& local_rot = Quaternion());

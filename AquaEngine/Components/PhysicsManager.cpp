@@ -210,7 +210,7 @@ PhysicsManager::Instance PhysicsManager::createStatic(Entity e, PhysicShape shap
 
 	_scene->addActor(*_data.actor[index]);
 
-	return{ index++ };
+	return{ index };
 }
 
 PhysicsManager::Instance PhysicsManager::create(Entity e, PhysicActorType type, const Vector3& position, const Quaternion& rot)
@@ -318,6 +318,14 @@ PhysicShape PhysicsManager::createBoxShape(float hx, float hy, float hz, PhysicM
 {
 	PhysicShape shape;
 	shape.shape = _physics->createShape(PxBoxGeometry(hx, hy, hz), *material.mat);
+
+	return shape;
+}
+
+PhysicShape PhysicsManager::createSphereShape(float radius, PhysicMaterial material)
+{
+	PhysicShape shape;
+	shape.shape = _physics->createShape(PxSphereGeometry(radius), *material.mat);
 
 	return shape;
 }
