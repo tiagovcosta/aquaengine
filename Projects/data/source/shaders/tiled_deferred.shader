@@ -87,7 +87,7 @@ snippets =
 		"""
 			#define SPHEREMAP_ENCODE 1
 
-			#define TILED_CULLING 0
+			#define TILED_CULLING 1
 			#define LIGHTS_PER_TILE_MODE 0
 
 			#define TILE_RES 16

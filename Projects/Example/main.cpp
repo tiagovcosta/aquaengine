@@ -390,11 +390,49 @@ public:
 			_model_manager->addSubset(plane_model, 0, &_metal3);
 		}
 
+		// Spheres with multiple materials
+		{
+			auto shape = _physics_manager->createSphereShape(0.5f, _physic_material);
+			_physics_manager->setShapeLocalPose(shape, Vector3(0.0f, 0.5f, 0.0f));
+
+			for(int x = 0; x < SHOWCASE_ROW_SIZE; x++)
+			{
+				for(int z = 0; z < SHOWCASE_COLUMN_SIZE; z++)
+				{
+					auto sphere    = _entity_manager->create();
+					auto transform = _transform_manager->create(sphere);
+					auto model     = _model_manager->create(sphere, _primtive_mesh_manager->getSphere(), 0);
+
+					Vector3 position(-((int)SHOWCASE_ROW_SIZE - 1) + x * 2, 0.0f, 5 + z * 2);
+
+					_transform_manager->translate(transform, position);
+
+					_model_manager->addSubset(model, 0, &_showcase_materials[x* SHOWCASE_COLUMN_SIZE + z]);
+
+					auto rigid_actor = _physics_manager->createStatic(sphere, shape, position);
+
+					//----------------------------------------------
+
+					auto light_entity    = _entity_manager->create();
+					auto light_transform = _transform_manager->create(light_entity);
+					auto light           = _light_manager->create(light_entity, LightManager::LightType::POINT);
+					_transform_manager->translate(light_transform, position + Vector3(0, 2, 0));
+					_light_manager->setRadius(light, 4);
+
+					Vector3 color = TEST_COLORS[(x * z + x + z) % NUM_TEST_COLORS];
+					color *= 255;
+
+					_light_manager->setColor(light, (u8)color.x, (u8)color.y, (u8)color.z);
+					//_light_manager->setColor(light, 255, 255, 255);
+				}
+			}
+		}
+
 		// Create player-controlled sphere (using kinematic physic actor)
 		{
-			_player_box = _entity_manager->create();
+			_player_box        = _entity_manager->create();
 			auto box_transform = _transform_manager->create(_player_box);
-			auto box_model = _model_manager->create(_player_box, _primtive_mesh_manager->getSphere(), 0);
+			auto box_model     = _model_manager->create(_player_box, _primtive_mesh_manager->getSphere(), 0);
 
 			_model_manager->addSubset(box_model, 0, &_player_material);
 
@@ -958,6 +996,11 @@ public:
 		render_device.deleteCachedParameterGroup(*_metal2.params);
 		render_device.deleteCachedParameterGroup(*_metal3.params);
 
+		for(int i = 0; i < SHOWCASE_ROW_SIZE * SHOWCASE_COLUMN_SIZE; i++)
+		{
+			render_device.deleteCachedParameterGroup(*_showcase_materials[i].params);
+		}
+
 		render_device.deleteParameterGroup(*_main_allocator, *_kernel_params);
 
 		//-----------------------------------------------------------
@@ -1206,6 +1249,32 @@ private:
 
 			render_device.deleteParameterGroup(*_main_allocator, *params);			
 		}
+
+		// Create showcase materials
+		{
+			Permutation permutation;
+
+			auto params_desc = getParameterGroupDesc(*model_material_params_desc_set, permutation);
+
+			auto params = render_device.createParameterGroup(*_main_allocator, RenderDevice::ParameterGroupType::MATERIAL,
+															 *params_desc, UINT32_MAX, 0, nullptr);
+
+			for(int x = 0; x < SHOWCASE_ROW_SIZE; x++)
+			{
+				for(int z = 0; z < SHOWCASE_COLUMN_SIZE; z++)
+				{
+					Vector3* color = (Vector3*)params->getCBuffersData();
+
+					*color                 = Vector3(1.0f, 1.0f, 1.0f);
+					*(Vector2*)(color + 1) = Vector2((float)(x+1) / SHOWCASE_ROW_SIZE, (float)(z+1) / SHOWCASE_COLUMN_SIZE);
+
+					_showcase_materials[x * SHOWCASE_COLUMN_SIZE + z].params      = render_device.cacheParameterGroup(*params);
+					_showcase_materials[x * SHOWCASE_COLUMN_SIZE + z].permutation = permutation;
+				}
+			}
+
+			render_device.deleteParameterGroup(*_main_allocator, *params);
+		}
 	}
 
 	void spawnBoxes(int row_count)
@@ -1312,6 +1381,11 @@ private:
 	Material _metal1;
 	Material _metal2;
 	Material _metal3;
+
+	static const u32 SHOWCASE_ROW_SIZE    = 10;
+	static const u32 SHOWCASE_COLUMN_SIZE = 10;
+
+	Material _showcase_materials[SHOWCASE_ROW_SIZE * SHOWCASE_COLUMN_SIZE];
 
 	Entity _sun;
 	Entity _player_box;
