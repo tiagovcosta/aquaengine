@@ -375,11 +375,8 @@ snippets =
 
 			       		float cos_light_angle = dot(normal, directional_light_buffer_direction[i]);
 
-
-
 			       		float3 pos_shadow = position_ws + normal * 0.3f * saturate(1.0f - cos_light_angle + 0.3f);
 			       		//float3 pos_shadow = position_ws + normal * 1.0f / SHADOW_MAP_HEIGHT;
-
 
 			       		result += lighting(Rd, Ks, fresnel_diffuse, M, roughness_power_4_minus_1, normal, view_dir, 
 			       							directional_light_buffer_direction[i], color.rgb * color.a * 255 * PI) * 
@@ -417,8 +414,11 @@ snippets =
 					        // k=20: -(1/20)*(1 - 21/(1+20*x^2))
 					        float falloff = -0.05 + 1.05/(1+20*x*x);
 					        //falloff = 1.0f;
+
+					        float4 color = point_light_buffer_color[nLightIndex];
+
 			       			result += lighting(Rd, Ks, fresnel_diffuse, M, roughness_power_4_minus_1, normal, view_dir, 
-			       						       light_dir, point_light_buffer_color[nLightIndex].rgb * PI) * falloff;
+			       						       light_dir, color.rgb * color.a * 255 * PI) * falloff;
 			       		}
 			       	}
 		       	}
@@ -488,8 +488,11 @@ snippets =
 					        // k=20: -(1/20)*(1 - 21/(1+20*x^2))
 					        float falloff = -0.05 + 1.05/(1+20*x*x);
 					        //falloff = 1.0f;
+
+					        float4 color = spot_light_buffer_color[nLightIndex];
+
 			       			result += lighting(Rd, Ks, fresnel_diffuse, M, roughness_power_4_minus_1, normal, view_dir, 
-			       						       light_dir, spot_light_buffer_color[nLightIndex].rgb * PI) * falloff * radial_attenuation;
+			       						       light_dir, color.rgb * color.a * 255 * PI) * falloff * radial_attenuation;
 
 			       			//result = float3(0.0f, 1.0f, 1.0f);
 			       		}

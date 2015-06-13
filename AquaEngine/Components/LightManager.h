@@ -113,7 +113,7 @@ namespace aqua
 
 		void update();
 
-		void setColor(Instance i, u8 red, u8 green, u8 blue, u8 intensity = 255);
+		void setColor(Instance i, u8 red, u8 green, u8 blue, u8 intensity = 1);
 		void setIntensity(Instance i, float intensity);
 
 		bool setRadius(Instance i, float radius);
