@@ -8,6 +8,7 @@
 
 #include <Generators\CSMUtilties.h>
 #include <Generators\ShadowMapGenerator.h>
+#include <Generators\NormalOrientedSSAO.h>
 #include <Generators\ScreenSpaceReflections.h>
 
 #include <Generators\PostProcess\DepthOfField.h>
@@ -127,9 +128,6 @@ public:
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
 													  0, nullptr, &_ssao_buffer_sr, &_ssao_buffer_rt, nullptr, nullptr);
 
-		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
-													  0, nullptr, &_ssao_buffer2_sr, &_ssao_buffer2_rt, nullptr, nullptr);
-
 		//LIGHTING BUFFER
 
 		texture_desc.width          = _width;
@@ -168,29 +166,6 @@ public:
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
 													  0, nullptr, &_dof_sr, &_dof_rt, nullptr, nullptr);
 
-		//SSAO
-		auto ssao_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/ssao.cshader"));
-		_ssao_shader_permutation = ssao_shader->getPermutation(0);
-
-		auto ssao_params_desc_set = ssao_shader->getInstanceParameterGroupDescSet();
-		_ssao_params_desc         = getParameterGroupDesc(*ssao_params_desc_set, 0);
-
-		_ssao_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-																		  *_ssao_params_desc, UINT32_MAX, 0, nullptr);
-		_ssao_params->setSRV(_normal_buffer_sr, 0);
-		_ssao_params->setSRV(_depth_target2_sr, 1);
-
-		//SSAO blur
-		auto blur_shader              = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/blur.cshader"));
-		_ssao_blur_shader_permutation = blur_shader->getPermutation(0);
-
-		auto ssao_blur_params_desc_set = blur_shader->getInstanceParameterGroupDescSet();
-		_ssao_blur_params_desc         = getParameterGroupDesc(*ssao_blur_params_desc_set, 0);
-
-		_ssao_blur_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-																			   *_ssao_blur_params_desc, UINT32_MAX, 0, nullptr);
-		_ssao_blur_params->setSRV(_ssao_buffer_sr, 0);
-
 		//Apply Gamma
 		auto apply_gamma_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/apply_gamma.cshader"));
 		_apply_gamma_shader_permutation = apply_gamma_shader->getPermutation(0);
@@ -218,8 +193,6 @@ public:
 		RenderDevice& render_device = *_renderer->getRenderDevice();
 
 		render_device.deleteParameterGroup(*_allocator, *_apply_gamma_params);
-		render_device.deleteParameterGroup(*_allocator, *_ssao_blur_params);
-		render_device.deleteParameterGroup(*_allocator, *_ssao_params);
 
 		RenderDevice::release(_dof_rt);
 		RenderDevice::release(_dof_sr);
@@ -227,9 +200,6 @@ public:
 		RenderDevice::release(_lighting_buffer_uav);
 		RenderDevice::release(_lighting_buffer_rt);
 		RenderDevice::release(_lighting_buffer_sr);
-
-		RenderDevice::release(_ssao_buffer2_rt);
-		RenderDevice::release(_ssao_buffer2_sr);
 
 		RenderDevice::release(_ssao_buffer_rt);
 		RenderDevice::release(_ssao_buffer_sr);
@@ -372,79 +342,15 @@ public:
 		scope_id = profiler->beginScope("ssao");
 
 		{
-			auto scope_id = profiler->beginScope("generate");
+			SSAOGenerator::Args ssao_args;
+			ssao_args.normal_buffer = _normal_buffer_sr;
+			ssao_args.depth_buffer  = _depth_target2_sr;
+			ssao_args.viewport      = args.viewport;
+			ssao_args.target        = _ssao_buffer_rt;
+			ssao_args.target_width  = _width;
+			ssao_args.target_height = _height;
 
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
-			DrawCall dc = createDrawCall(false, 3, 0, 0);
-
-			Mesh mesh;
-			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
-
-			RenderItem render_item;
-			render_item.draw_call       = &dc;
-			render_item.num_instances   = 1;
-			render_item.shader          = _ssao_shader_permutation[0];
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_ssao_params);
-			render_item.material_params = nullptr;
-			render_item.mesh            = &mesh;
-
-			_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
-
-			RenderTexture rt;
-			rt.render_target = _ssao_buffer_rt;
-			rt.width         = _width;
-			rt.height        = _height;
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			profiler->endScope(scope_id);
-		}
-
-		{
-			auto scope_id = profiler->beginScope("blur");
-
-			_renderer->getRenderDevice()->unbindResources();
-
-			_renderer->bindFrameParameters();
-			_renderer->bindViewParameters();
-
-			u32 offset = _ssao_blur_params_desc->getConstantOffset(getStringID("one_over_texture_size"));
-
-			Vector2* one_over_texture_size = (Vector2*)pointer_math::add(_ssao_blur_params->getCBuffersData(), offset);
-
-			*one_over_texture_size = Vector2(1.0f / args.target->width, 1.0f / args.target->height);
-
-			DrawCall dc = createDrawCall(false, 3, 0, 0);
-
-			Mesh mesh;
-			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
-
-			RenderItem render_item;
-			render_item.draw_call       = &dc;
-			render_item.num_instances   = 1;
-			render_item.shader          = _ssao_blur_shader_permutation[0];
-			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_ssao_blur_params);
-			render_item.material_params = nullptr;
-			render_item.mesh            = &mesh;
-
-			_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
-
-			RenderTexture rt;
-			rt.render_target = _ssao_buffer2_rt;
-			rt.width         = _width;
-			rt.height        = _height;
-
-			_renderer->setRenderTarget(1, &rt, nullptr);
-
-			_renderer->render(render_item);
-
-			profiler->endScope(scope_id);
+			_renderer->generateResource(getStringID("ssao"), &ssao_args, nullptr);
 		}
 
 		profiler->endScope(scope_id);
@@ -463,7 +369,6 @@ public:
 			vl_args.input_depth       = _depth_target2_sr;
 			vl_args.shadow_map        = _csm.srv;
 			vl_args.light_dir         = _sun_light_dir;
-			//vl_args.light_color     = Vector3(20.0f, 20.0f, 20.0f);
 			vl_args.light_color       = args.sun_color;
 			vl_args.cascades_matrices = _csm.cascades_view_proj;
 			vl_args.cascades_splits   = _csm.cascades_end;
@@ -497,9 +402,8 @@ public:
 		lighting_args.color_buffer        = _color_buffer_sr;
 		lighting_args.normal_buffer       = _normal_buffer_sr;
 		lighting_args.depth_buffer        = _depth_target2_sr;
-		lighting_args.ssao_buffer         = _ssao_buffer2_sr;
+		lighting_args.ssao_buffer         = _ssao_buffer_sr;
 		lighting_args.scattering_buffer   = args.scattering;
-		//lighting_args.scattering_buffer = nullptr;
 
 		scope_id = profiler->beginScope("tiled_deferred");
 
@@ -675,23 +579,12 @@ private:
 	RenderTargetH       _ssao_buffer_rt;
 	ShaderResourceH		_ssao_buffer_sr;
 
-	RenderTargetH       _ssao_buffer2_rt;
-	ShaderResourceH		_ssao_buffer2_sr;
-
 	UnorderedAccessH    _lighting_buffer_uav;
 	RenderTargetH		_lighting_buffer_rt;
 	ShaderResourceH		_lighting_buffer_sr;
 
 	RenderTargetH       _dof_rt;
 	ShaderResourceH		_dof_sr;
-
-	ShaderPermutation         _ssao_shader_permutation;
-	const ParameterGroupDesc* _ssao_params_desc;
-	ParameterGroup*           _ssao_params;
-
-	ShaderPermutation         _ssao_blur_shader_permutation;
-	const ParameterGroupDesc* _ssao_blur_params_desc;
-	ParameterGroup*           _ssao_blur_params;
 
 	ShaderPermutation         _apply_gamma_shader_permutation;
 	const ParameterGroupDesc* _apply_gamma_params_desc;

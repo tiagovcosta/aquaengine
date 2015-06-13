@@ -4,7 +4,7 @@ include = [  ]
 
 passes =
 {
-	ssao =
+	blur =
 	{
 		vs = "vs_func"
 		ps = "ps_func"

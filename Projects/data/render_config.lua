@@ -13,7 +13,7 @@ render_shaders = {
 	"data/shaders/particles_render.cshader",
 	"data/shaders/noise.cshader",
 	"data/shaders/ssao.cshader",
-	"data/shaders/blur.cshader",
+	"data/shaders/ssao_blur.cshader",
 
 	"data/shaders/downscale.cshader",
 	"data/shaders/accumulation.cshader",
@@ -35,7 +35,7 @@ render_shaders = {
 	"data/shaders/eye_adapt.cshader",
 	"data/shaders/tonemap.cshader",
 	"data/shaders/bright_pass.cshader",
-	"data/shaders/blur.cshader",
+	"data/shaders/bloom_blur.cshader",
 }
 
 compute_shaders = {

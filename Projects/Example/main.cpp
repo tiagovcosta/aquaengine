@@ -8,6 +8,7 @@
 
 #include <Generators\CSMUtilties.h>
 #include <Generators\ShadowMapGenerator.h>
+#include <Generators\NormalOrientedSSAO.h>
 #include <Generators\ScreenSpaceReflections.h>
 
 #include <Generators\PostProcess\DepthOfField.h>
@@ -135,7 +136,11 @@ public:
 
 		_renderer.addResourceGenerator(getStringID("screen_space_reflections"), &_screen_space_reflections);
 
-		
+		//---------------------------------------------------------------------------------
+
+		_ssao_generator.init(_renderer, _lua_state, *_main_allocator, *_scratchpad_allocator, _wnd_width, _wnd_height);
+
+		_renderer.addResourceGenerator(getStringID("ssao"), &_ssao_generator);
 
 		//---------------------------------------------------------------------------------
 
@@ -1069,6 +1074,7 @@ public:
 
 		//-----------------------------------------------
 
+		_ssao_generator.shutdown();
 		_screen_space_reflections.shutdown();
 
 		_shadow_map_generator.shutdown();
@@ -1338,6 +1344,7 @@ private:
 	ProxyAllocator*	    _shadow_map_generator_allocator;
 	ShadowMapGenerator  _shadow_map_generator;
 
+	SSAOGenerator		   _ssao_generator;
 	ScreenSpaceReflections _screen_space_reflections;
 
 	ProxyAllocator* _entity_manager_allocator;

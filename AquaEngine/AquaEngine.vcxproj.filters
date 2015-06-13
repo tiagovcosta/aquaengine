@@ -228,6 +228,9 @@
     <ClInclude Include="Generators\PostProcess\ToneMapper.h">
       <Filter>Generators\PostProcess</Filter>
     </ClInclude>
+    <ClInclude Include="Generators\NormalOrientedSSAO.h">
+      <Filter>Generators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Allocators\Allocator.cpp">
@@ -343,6 +346,9 @@
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="Generators\ScreenSpaceReflections.cpp">
+      <Filter>Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Generators\NormalOrientedSSAO.cpp">
       <Filter>Generators</Filter>
     </ClCompile>
   </ItemGroup>

@@ -28,7 +28,6 @@ instance =
 
 	options =
 	[
-		//{ define = "INSTANCING" }
 	]
 }
 

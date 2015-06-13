@@ -180,7 +180,7 @@ public:
 																				 *_bright_pass_params_desc, UINT32_MAX, 0, nullptr);
 
 		// Bloom blur
-		auto blur_shader                    = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/blur.cshader"));
+		auto blur_shader                    = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/bloom_blur.cshader"));
 		_horizontal_blur_shader_permutation = blur_shader->getPermutation(0);
 		_vertical_blur_shader_permutation   = blur_shader->getPermutation(1);
 
