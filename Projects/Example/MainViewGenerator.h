@@ -8,13 +8,13 @@
 
 #include <Generators\CSMUtilties.h>
 #include <Generators\ShadowMapGenerator.h>
+#include <Generators\VolumetricLightGenerator.h>
 #include <Generators\NormalOrientedSSAO.h>
 #include <Generators\ScreenSpaceReflections.h>
 
 #include <Generators\PostProcess\DepthOfField.h>
 #include <Generators\PostProcess\ToneMapper.h>
 
-#include <Components\VolumetricLightManager.h>
 #include <Components\LightManager.h>
 
 #include <Renderer\Renderer.h>
@@ -362,7 +362,7 @@ public:
 		{
 			scope_id = profiler->beginScope("volumetric_lights");
 
-			VolumetricLightManager::Args vl_args;
+			VolumetricLightGenerator::Args vl_args;
 			vl_args.camera            = args.camera;
 			vl_args.viewport          = args.viewport;
 			vl_args.target            = nullptr;

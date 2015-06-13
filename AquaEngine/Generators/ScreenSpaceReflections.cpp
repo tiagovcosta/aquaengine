@@ -206,10 +206,10 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 										Vector4(0.0f, 0.0f, 1.0f, 0.0f),
 										Vector4(0.5f, 0.5f, 0.0f, 1.0f));
 
-		Matrix4x4 size_scale = Matrix4x4(Vector4(_width, 0.0f, 0.0f, 0.0f),
-										 Vector4(0.0f, _height, 0.0f, 0.0f),
-										 Vector4(0.0f, 0.0f, 1.0f, 0.0f),
-										 Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+		Matrix4x4 size_scale = Matrix4x4(Vector4((float)_width, 0.0f,			0.0f, 0.0f),
+										 Vector4(0.0f,			(float)_height, 0.0f, 0.0f),
+										 Vector4(0.0f,			0.0f,			1.0f, 0.0f),
+										 Vector4(0.0f,			0.0f,			0.0f, 1.0f));
 
 		project_to_pixel = project_to_pixel * tex_scale * size_scale;
 
@@ -277,8 +277,8 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		{
 			_horizontal_blur_params->setSRV(_reflection_target_sr[i], 0);
 
-			u32 width  = max(1, floor(1280 / pow(2, i)));
-			u32 height = max(1, floor(720 / pow(2, i)));
+			u32 width  = (u32)max(1, floor(1280 / pow(2, i)));
+			u32 height = (u32)max(1, floor(720 / pow(2, i)));
 
 			*one_over_texture_size = Vector2(1.0f / width, 1.0f / height);
 
@@ -319,8 +319,8 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		{
 			_vertical_blur_params->setSRV(_glossiness_chain_target_sr[i], 0);
 
-			u32 width  = max(1, floor(1280 / pow(2, i)));
-			u32 height = max(1, floor(720 / pow(2, i)));
+			u32 width  = (u32)max(1, floor(1280 / pow(2, i)));
+			u32 height = (u32)max(1, floor(720 / pow(2, i)));
 
 			*one_over_texture_size = Vector2(1.0f / width, 1.0f / height);
 

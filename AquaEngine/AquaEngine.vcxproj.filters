@@ -213,9 +213,6 @@
     <ClInclude Include="Resources\FontManager.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Components\VolumetricLightManager.h">
-      <Filter>Components</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\MaterialsManager.h">
       <Filter>Renderer</Filter>
     </ClInclude>
@@ -229,6 +226,9 @@
       <Filter>Generators\PostProcess</Filter>
     </ClInclude>
     <ClInclude Include="Generators\NormalOrientedSSAO.h">
+      <Filter>Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Generators\VolumetricLightGenerator.h">
       <Filter>Generators</Filter>
     </ClInclude>
   </ItemGroup>
@@ -349,6 +349,9 @@
       <Filter>Generators</Filter>
     </ClCompile>
     <ClCompile Include="Generators\NormalOrientedSSAO.cpp">
+      <Filter>Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Generators\VolumetricLightGenerator.cpp">
       <Filter>Generators</Filter>
     </ClCompile>
   </ItemGroup>

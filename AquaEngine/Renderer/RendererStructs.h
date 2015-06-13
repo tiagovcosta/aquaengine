@@ -14,7 +14,6 @@
 namespace aqua
 {
 	struct ShaderPermutationPass;
-	//struct ParameterGroup;
 	class CachedParameterGroup;
 	class ParameterGroup;
 

@@ -8,6 +8,7 @@
 
 #include <Generators\CSMUtilties.h>
 #include <Generators\ShadowMapGenerator.h>
+#include <Generators\VolumetricLightGenerator.h>
 #include <Generators\NormalOrientedSSAO.h>
 #include <Generators\ScreenSpaceReflections.h>
 
@@ -20,8 +21,6 @@
 #include <Resources\TextureManager.h>
 #include <Resources\FontManager.h>
 #include <PrimitiveMeshManager.h>
-
-#include <Components\VolumetricLightManager.h>
 
 #include <Components\LightManager.h>
 #include <Components\ModelManager.h>
@@ -145,7 +144,7 @@ public:
 		//---------------------------------------------------------------------------------
 
 		_volumetric_light_allocator = allocator::allocateNew<ProxyAllocator>(*_main_allocator, *_main_allocator);
-		_volumetric_light_manager.init(_renderer, nullptr, *_volumetric_light_allocator, *_scratchpad_allocator, *_light_manager);
+		_volumetric_light_manager.init(_renderer, nullptr, *_volumetric_light_allocator, *_scratchpad_allocator, _wnd_width, _wnd_height);
 
 		_renderer.addResourceGenerator(getStringID("volumetric_lights"), &_volumetric_light_manager);
 
@@ -1359,8 +1358,8 @@ private:
 	ModelManager*         _model_manager;
 	LightManager*         _light_manager;
 
-	ProxyAllocator*			_volumetric_light_allocator;
-	VolumetricLightManager  _volumetric_light_manager;
+	ProxyAllocator*			 _volumetric_light_allocator;
+	VolumetricLightGenerator _volumetric_light_manager;
 
 	TextureManager        _texture_manager;
 	FontManager*		  _font_manager;
