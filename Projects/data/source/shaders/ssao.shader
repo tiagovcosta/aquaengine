@@ -102,18 +102,6 @@ snippets =
 			};
 
 /*
-			{ 
-			float3( 0.251450823973f, 0.0871773986447f, 0.525009175087f ), 
-			float3( -0.2916385311f, 0.181144893895f, -0.494842262899f ), 
-			float3( -0.335602982577f, 0.673180335337f, 0.201479802776f ), 
-			float3( -0.872496014491f, 0.316978854765f, 0.275931655948f ), 
-			float3( 0.665311448175f, 0.244753343573f, -0.167157674677f ), 
-			float3( 0.608843393328f, 0.615227753108f, 0.190684003857f ), 
-			float3( 0.330306113081f, 0.264875180414f, -0.815237123271f ), 
-			float3( 0.2138630048f, 0.919642471544f, -0.239081534152f ), 
-			};
-*/
-/*
 			static const uint SAMPLE_KERNEL_SIZE = 16;
 			static const float3 SAMPLE_KERNEL[SAMPLE_KERNEL_SIZE] = 
 			{ 
@@ -135,12 +123,27 @@ snippets =
 			float3( -0.045208583521f, 0.433071964165f, 0.445899966801f ), 
 			};
 */
+			// hlsl array
+			static const uint SAMPLE_NUM = 8;
+
+			static const float3 POISSON_SAMPLES[SAMPLE_NUM] = 
+			{ 
+				float3( 0.835352229632f, -0.0837174886883f, 0.38444185945f ), 
+				float3( -0.66642931683f, -0.305831990521f, -0.380433382251f ), 
+				float3( 0.114573402593f, -0.365586760474f, 0.675984885662f ), 
+				float3( -0.124132611992f, 0.924034848157f, -0.344905675893f ), 
+				float3( -0.61393048916f, 0.16019921482f, 0.653224179437f ), 
+				float3( 0.385299032702f, 0.15533075461f, -0.265999982056f ), 
+				float3( 0.0400565394783f, 0.748991459201f, 0.458598305052f ), 
+				float3( -0.0735425637235f, -0.885286700244f, 0.0167651072754f ), 
+			};
+
 			static const float BAYER_MATRIX[4][4] = { { 1.0f/17,  9.0f/17,  3.0f/17,  11.0f/17 },
 													  { 13.0f/17, 5.0f/17,  15.0f/17, 7.0f/17  },
 													  { 4.0f/17,  12.0f/17, 2.0f/17,  10.0f/17 },
 													  { 16.0f/17, 8.0f/17,  14.0f/17, 6.0f/17  } };
 
-			float4 ps_main( PS_INPUT input) : SV_TARGET0
+			float ps_main( PS_INPUT input) : SV_TARGET0
 			{
 				//float3 normal = normal_buffer.Load(uint3(input.position.xy, 0)).rgb * 2.0f - 1.0f;
 				float3 normal = GBUFFER_GET_VS_NORMAL(normal_buffer.Load(uint3(input.position.xy, 0)));
@@ -160,14 +163,13 @@ snippets =
 				float bayer2 = BAYER_MATRIX[input.position.y%4][input.position.x%4];
 				float bayer3 = BAYER_MATRIX[input.position.x%4][input.position.x%4];
 				float3 rvec  = float3(bayer, bayer2, 0.5f) * 2.0 - 1.0;
-				rvec         = float3(bayer, bayer3, bayer2) * 2.0 - 1.0;
+				//rvec         = float3(bayer, bayer3, bayer2) * 2.0 - 1.0;
 
 				float rand = frac(sin(dot((input.position.xy+50.0f) ,float2(12.9898,78.233))) * 43758.5453);
 				float rand2 = frac(sin(dot((input.position.xy*input.position.yx) ,float2(12.9898,78.233))) * 43758.5453);
 				//rvec = float3(rand, rand, 0.5f) * 2.0 - 1.0;
 				//rvec = float3(rand, 0.5f, rand2) * 2.0 - 1.0;
 				//rvec = float3(rand, rand2, 0.5f) * 2.0 - 1.0;
-
 				//rvec = float3(bayer * rand, 0.5f, bayer2 * rand2) * 2.0 - 1.0;
 
 				rvec = normalize(rvec);
@@ -175,10 +177,11 @@ snippets =
 				//rvec = mul(float4(rvec, 0.0f), view).xyz;
 				//rvec = normalize(rvec);
 
+#if HEMISPHERICAL_SAMPLES
 				float3 tangent   = normalize(rvec - normal * dot(rvec, normal));
 				float3 bitangent = cross(normal, tangent);
 				float3x3 tbn     = float3x3(tangent, bitangent, normal);
-
+#endif
 				float occlusion = 0.0f;
 
 				for(uint i = 0; i < SAMPLE_KERNEL_SIZE; ++i) 
@@ -187,9 +190,18 @@ snippets =
 					float scale = float(i) / SAMPLE_KERNEL_SIZE;
 				   	scale = lerp(0.1f, 1.0f, scale * scale);
 
+#if HEMISPHERICAL_SAMPLES
 					float3 sample = mul(normalize(SAMPLE_KERNEL[i]) * scale, tbn);
 					sample        = sample * RADIUS + position;
-				  
+#else
+					float3 sample = reflect(SAMPLE_KERNEL[i].xyz, rvec);
+    
+			        // Flip sample vector if it is behind the plane with normal 'normal'.
+			        float flip = sign( dot(normal, sample) );
+
+					sample = flip * sample * scale * RADIUS + position;
+#endif
+
 					// project sample position:
 					float4 offset = float4(sample, 1.0);
 					offset        = mul(offset, proj);
@@ -219,14 +231,10 @@ snippets =
 				}
 
 				occlusion = 1.0 - (occlusion / SAMPLE_KERNEL_SIZE * 2);
-/*
-				if(sqrt(position.x*position.x + position.y*position.y + position.z*position.z) > 5.0f)
-					return 0.0f;
-				else
-					return occlusion + 1.0f;
-*/
-				//return occlusion;
-				return float4(occlusion, occlusion, occlusion, 1.0f);
+
+				//occlusion = pow(occlusion, 4.0f);
+
+				return occlusion;
 			}
 		"""
 	}
