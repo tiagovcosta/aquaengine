@@ -28,46 +28,46 @@ void VolumetricLightGenerator::init(aqua::Renderer& renderer, lua_State* lua_sta
 
 	//DOWNSCALED DEPTH TEXTURE
 
-	texture_desc.width = _width / 2;
-	texture_desc.height = _height / 2;
-	texture_desc.mip_levels = 1;
-	texture_desc.array_size = 1;
-	texture_desc.format = RenderResourceFormat::R16_UNORM;
-	texture_desc.sample_count = 1;
+	texture_desc.width          = _width / 2;
+	texture_desc.height         = _height / 2;
+	texture_desc.mip_levels     = 1;
+	texture_desc.array_size     = 1;
+	texture_desc.format         = RenderResourceFormat::R16_UNORM;
+	texture_desc.sample_count   = 1;
 	texture_desc.sample_quality = 0;
-	texture_desc.update_mode = UpdateMode::GPU;
-	texture_desc.generate_mips = false;
+	texture_desc.update_mode    = UpdateMode::GPU;
+	texture_desc.generate_mips  = false;
 
-	view_desc.format = RenderResourceFormat::R16_UNORM;
+	view_desc.format            = RenderResourceFormat::R16_UNORM;
 	view_desc.most_detailed_mip = 0;
-	view_desc.mip_levels = -1;
+	view_desc.mip_levels        = -1;
 
 	_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
-		0, nullptr, &_downscaled_sr, &_downscaled_rt, nullptr, nullptr);
+												  0, nullptr, &_downscaled_sr, &_downscaled_rt, nullptr, nullptr);
 
 	// ACCUMULATION TEXTURE
 
 	texture_desc.format = RenderResourceFormat::RGBA16_FLOAT;
-	view_desc.format = RenderResourceFormat::RGBA16_FLOAT;
+	view_desc.format    = RenderResourceFormat::RGBA16_FLOAT;
 
 	_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
-		0, nullptr, &_accumulation_sr, &_accumulation_rt, nullptr, nullptr);
+												  0, nullptr, &_accumulation_sr, &_accumulation_rt, nullptr, nullptr);
 
 	// HORIZONTAL BLUR TEXTURE
 
 	texture_desc.format = RenderResourceFormat::RGBA16_FLOAT;
-	view_desc.format = RenderResourceFormat::RGBA16_FLOAT;
+	view_desc.format    = RenderResourceFormat::RGBA16_FLOAT;
 
 	_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
-		0, nullptr, &_horizontal_blur_sr, &_horizontal_blur_rt, nullptr, nullptr);
+												  0, nullptr, &_horizontal_blur_sr, &_horizontal_blur_rt, nullptr, nullptr);
 
 	// VERTICAL BLUR TEXTURE
 
 	texture_desc.format = RenderResourceFormat::RGBA16_FLOAT;
-	view_desc.format = RenderResourceFormat::RGBA16_FLOAT;
+	view_desc.format    = RenderResourceFormat::RGBA16_FLOAT;
 
 	_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
-		0, nullptr, &_vertical_blur_sr, &_vertical_blur_rt, nullptr, nullptr);
+												  0, nullptr, &_vertical_blur_sr, &_vertical_blur_rt, nullptr, nullptr);
 
 	/*
 	//LIGHTING BUFFER
@@ -92,35 +92,35 @@ void VolumetricLightGenerator::init(aqua::Renderer& renderer, lua_State* lua_sta
 	//SHADERS
 
 	//DOWNSCALE
-	auto downscale_shader = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/downscale.cshader"));
+	auto downscale_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/downscale.cshader"));
 	_downscale_shader_permutation = downscale_shader->getPermutation(0);
 
 	auto downscale_params_desc_set = downscale_shader->getInstanceParameterGroupDescSet();
-	_downscale_params_desc = getParameterGroupDesc(*downscale_params_desc_set, 0);
+	_downscale_params_desc         = getParameterGroupDesc(*downscale_params_desc_set, 0);
 
 	_downscale_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-		*_downscale_params_desc, UINT32_MAX, 0, nullptr);
+																		   *_downscale_params_desc, UINT32_MAX, 0, nullptr);
 
 	// ACCUMULATE
-	auto accumulation_shader = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/accumulation.cshader"));
+	auto accumulation_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/accumulation.cshader"));
 	_accumulation_shader_permutation = accumulation_shader->getPermutation(0);
 
 	auto accumulation_params_desc_set = accumulation_shader->getInstanceParameterGroupDescSet();
-	_accumulation_params_desc = getParameterGroupDesc(*accumulation_params_desc_set, 0);
+	_accumulation_params_desc         = getParameterGroupDesc(*accumulation_params_desc_set, 0);
 
 	_accumulation_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-		*_accumulation_params_desc, UINT32_MAX, 0, nullptr);
+																			  *_accumulation_params_desc, UINT32_MAX, 0, nullptr);
 	_accumulation_params->setSRV(_downscaled_sr, 0);
 
 	// HORIZONTAL BLUR
-	auto horizontal_blur_shader = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/bilateral_blur.cshader"));
+	auto horizontal_blur_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/bilateral_blur.cshader"));
 	_horizontal_blur_shader_permutation = horizontal_blur_shader->getPermutation(0);
 
 	auto horizontal_blur_params_desc_set = horizontal_blur_shader->getInstanceParameterGroupDescSet();
-	_horizontal_blur_params_desc = getParameterGroupDesc(*horizontal_blur_params_desc_set, 0);
+	_horizontal_blur_params_desc         = getParameterGroupDesc(*horizontal_blur_params_desc_set, 0);
 
 	_horizontal_blur_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
-		*_horizontal_blur_params_desc, UINT32_MAX, 0, nullptr);
+																				 *_horizontal_blur_params_desc, UINT32_MAX, 0, nullptr);
 	_horizontal_blur_params->setSRV(_accumulation_sr, 0);
 	_horizontal_blur_params->setSRV(_downscaled_sr, 1);
 };
@@ -192,20 +192,20 @@ void VolumetricLightGenerator::generate(const void* args_, const VisibilityData*
 		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 		RenderItem render_item;
-		render_item.draw_call = &dc;
-		render_item.num_instances = 1;
-		render_item.shader = _downscale_shader_permutation[0];
+		render_item.draw_call       = &dc;
+		render_item.num_instances   = 1;
+		render_item.shader          = _downscale_shader_permutation[0];
 		render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_downscale_params);
 		render_item.material_params = nullptr;
-		render_item.mesh = &mesh;
+		render_item.mesh            = &mesh;
 
 		//_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
 		_renderer->setViewport(*args.viewport, _width / 2, _height / 2);
 
 		RenderTexture rt;
 		rt.render_target = _downscaled_rt;
-		rt.width = _width / 2;
-		rt.height = _height / 2;
+		rt.width         = _width / 2;
+		rt.height        = _height / 2;
 
 		_renderer->setRenderTarget(1, &rt, nullptr);
 
@@ -262,20 +262,20 @@ void VolumetricLightGenerator::generate(const void* args_, const VisibilityData*
 		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 		RenderItem render_item;
-		render_item.draw_call = &dc;
-		render_item.num_instances = 1;
-		render_item.shader = _accumulation_shader_permutation[0];
+		render_item.draw_call       = &dc;
+		render_item.num_instances   = 1;
+		render_item.shader          = _accumulation_shader_permutation[0];
 		render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_accumulation_params);
 		render_item.material_params = nullptr;
-		render_item.mesh = &mesh;
+		render_item.mesh            = &mesh;
 
 		//_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
 		_renderer->setViewport(*args.viewport, _width / 2, _height / 2);
 
 		RenderTexture rt;
 		rt.render_target = _accumulation_rt;
-		rt.width = _width / 2;
-		rt.height = _height / 2;
+		rt.width         = _width / 2;
+		rt.height        = _height / 2;
 
 		_renderer->setRenderTarget(1, &rt, nullptr);
 
@@ -314,20 +314,20 @@ void VolumetricLightGenerator::generate(const void* args_, const VisibilityData*
 		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 		RenderItem render_item;
-		render_item.draw_call = &dc;
-		render_item.num_instances = 1;
-		render_item.shader = _horizontal_blur_shader_permutation[0];
+		render_item.draw_call       = &dc;
+		render_item.num_instances   = 1;
+		render_item.shader          = _horizontal_blur_shader_permutation[0];
 		render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
 		render_item.material_params = nullptr;
-		render_item.mesh = &mesh;
+		render_item.mesh            = &mesh;
 
 		//_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
 		_renderer->setViewport(*args.viewport, _width / 2, _height / 2);
 
 		RenderTexture rt;
 		rt.render_target = _horizontal_blur_rt;
-		rt.width = _width / 2;
-		rt.height = _height / 2;
+		rt.width         = _width / 2;
+		rt.height        = _height / 2;
 
 		_renderer->setRenderTarget(1, &rt, nullptr);
 
@@ -366,20 +366,20 @@ void VolumetricLightGenerator::generate(const void* args_, const VisibilityData*
 		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 		RenderItem render_item;
-		render_item.draw_call = &dc;
-		render_item.num_instances = 1;
-		render_item.shader = _horizontal_blur_shader_permutation[1];
+		render_item.draw_call       = &dc;
+		render_item.num_instances   = 1;
+		render_item.shader          = _horizontal_blur_shader_permutation[1];
 		render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_horizontal_blur_params);
 		render_item.material_params = nullptr;
-		render_item.mesh = &mesh;
+		render_item.mesh            = &mesh;
 
 		//_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
 		_renderer->setViewport(*args.viewport, _width / 2, _height / 2);
 
 		RenderTexture rt;
 		rt.render_target = _vertical_blur_rt;
-		rt.width = _width / 2;
-		rt.height = _height / 2;
+		rt.width         = _width / 2;
+		rt.height        = _height / 2;
 
 		_renderer->setRenderTarget(1, &rt, nullptr);
 
@@ -387,6 +387,8 @@ void VolumetricLightGenerator::generate(const void* args_, const VisibilityData*
 	}
 
 	profiler->endScope(scope_id);
+
+	*args.output = _vertical_blur_sr;
 };
 
 void VolumetricLightGenerator::generate(lua_State* lua_state)

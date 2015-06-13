@@ -521,6 +521,9 @@ public:
 
 		TwAddVarRW(my_bar, "Volumetric Light", TW_TYPE_BOOL8, &_enable_volumetric_light, "");
 
+		_enable_volumetric_light      = false;
+		_enable_volumetric_light_prev = false;
+
 		TwAddVarRW(my_bar, "Shoulder Strength", TW_TYPE_FLOAT, &_shoulder_strength, "step = 0.01");
 		TwAddVarRW(my_bar, "Linear Strength", TW_TYPE_FLOAT, &_linear_strength, "step = 0.01");
 		TwAddVarRW(my_bar, "Linear Angle", TW_TYPE_FLOAT, &_linear_angle, "step = 0.01");
@@ -872,18 +875,28 @@ public:
 		if(_enable_volumetric_light)
 		{
 			_dynamic_sky->setScattering(_volumetric_light_manager.get());
-			args.scattering = _volumetric_light_manager.get();
+			args.enable_volumetric_lights = true;
 
-			_linear_white   = 100.0f;
-			_middle_grey    = 5.0f;
+			if(_enable_volumetric_light != _enable_volumetric_light_prev)
+			{
+				_linear_white = 100.0f;
+				_middle_grey  = 5.0f;
+
+				_enable_volumetric_light_prev = _enable_volumetric_light;
+			}
 		}
 		else
 		{
 			_dynamic_sky->setScattering(nullptr);
-			args.scattering = nullptr;
+			args.enable_volumetric_lights = false;
 
-			_linear_white = 22.2f;
-			_middle_grey = 0.4f;
+			if(_enable_volumetric_light != _enable_volumetric_light_prev)
+			{
+				_linear_white = 22.2f;
+				_middle_grey  = 0.4f;
+
+				_enable_volumetric_light_prev = _enable_volumetric_light;
+			}
 		}
 
 		args.enable_ssr                = _enable_ssr;
@@ -1407,6 +1420,7 @@ private:
 	PhysicMaterial _physic_material;
 
 	bool _enable_volumetric_light;
+	bool _enable_volumetric_light_prev;
 
 	//tone map parameters
 	float _shoulder_strength;

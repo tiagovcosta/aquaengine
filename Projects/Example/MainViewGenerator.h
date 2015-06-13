@@ -36,7 +36,9 @@ public:
 		const RenderTexture* target;
 		Vector3              sun_dir;
 		Vector3              sun_color;
-		ShaderResourceH		 scattering;
+
+		//Volumetric Lights args
+		bool                 enable_volumetric_lights;
 
 		//SSR args
 		bool                 enable_ssr;
@@ -359,6 +361,9 @@ public:
 		// VOLUMETRIC LIGHTS
 		//-----------------------------------------------
 
+		ShaderResourceH volumetric_lights_output = nullptr;
+
+		if(args.enable_volumetric_lights)
 		{
 			scope_id = profiler->beginScope("volumetric_lights");
 
@@ -372,6 +377,7 @@ public:
 			vl_args.light_color       = args.sun_color;
 			vl_args.cascades_matrices = _csm.cascades_view_proj;
 			vl_args.cascades_splits   = _csm.cascades_end;
+			vl_args.output            = &volumetric_lights_output;
 
 			_renderer->generateResource(getStringID("volumetric_lights"), &vl_args, nullptr);
 
@@ -403,7 +409,7 @@ public:
 		lighting_args.normal_buffer       = _normal_buffer_sr;
 		lighting_args.depth_buffer        = _depth_target2_sr;
 		lighting_args.ssao_buffer         = _ssao_buffer_sr;
-		lighting_args.scattering_buffer   = args.scattering;
+		lighting_args.scattering_buffer   = volumetric_lights_output;
 
 		scope_id = profiler->beginScope("tiled_deferred");
 

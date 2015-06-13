@@ -35,6 +35,8 @@ namespace aqua
 			Vector3				 light_color;
 			const Matrix4x4*	 cascades_matrices;
 			float*				 cascades_splits;
+
+			ShaderResourceH*     output;
 		};
 
 		void init(aqua::Renderer& renderer, lua_State* lua_state, Allocator& allocator, LinearAllocator& temp_allocator,
