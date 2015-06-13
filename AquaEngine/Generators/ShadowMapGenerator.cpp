@@ -2,6 +2,8 @@
 
 #include "ShadowMapGenerator.h"
 
+#include "..\DevTools\Profiler.h"
+
 #include "..\Renderer\Renderer.h"
 #include "..\Renderer\RendererStructs.h"
 
@@ -33,7 +35,7 @@ void ShadowMapGenerator::generate(const void* args_, const VisibilityData* visib
 {
 	const Args& args = *(const Args*)args_;
 
-	//Profiler* profiler = _renderer->getProfiler();
+	Profiler* profiler = _renderer->getProfiler();
 
 	u32 scope_id;
 
@@ -62,7 +64,7 @@ void ShadowMapGenerator::generate(const void* args_, const VisibilityData* visib
 	//Shadow Map pass
 	//-----------------------------------------------
 
-	//scope_id = profiler->beginScope("shadow_map");
+	scope_id = profiler->beginScope("shadow_map");
 
 	_renderer->setRenderTarget(0, nullptr, args.dsv);
 
@@ -74,8 +76,6 @@ void ShadowMapGenerator::generate(const void* args_, const VisibilityData* visib
 
 	_renderer->render(pass_index, queues[(u8)PassNameIndex::SHADOW_MAP]);
 
-	//profiler->endScope(scope_id);
-
 	//-----------------------------------------------
 	//Shadow Map Alpha Masked pass
 	//-----------------------------------------------
@@ -83,6 +83,8 @@ void ShadowMapGenerator::generate(const void* args_, const VisibilityData* visib
 	pass_index = _renderer->getShaderManager()->getPassIndex(passes_names[(u8)PassNameIndex::SHADOW_MAP_ALPHA_MASKED]);
 
 	_renderer->render(pass_index, queues[(u8)PassNameIndex::SHADOW_MAP_ALPHA_MASKED]);
+
+	profiler->endScope(scope_id);
 };
 
 void ShadowMapGenerator::generate(lua_State* lua_state)

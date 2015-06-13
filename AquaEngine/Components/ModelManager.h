@@ -86,6 +86,7 @@ namespace aqua
 			const DrawCall*				draw_call;
 		};
 
+		//SoA containing the of all instances of this component
 		struct InstanceData
 		{
 			u32                          size;
