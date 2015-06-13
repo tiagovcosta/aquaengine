@@ -49,10 +49,10 @@ namespace aqua
 		friend class PhysicsManager;
 	};
 
-	enum class PhysicActorType
+	struct PhysicPose
 	{
-		STATIC,
-		DYNAMIC
+		Vector3    position;
+		Quaternion rotation;
 	};
 
 	struct ActiveTransform
@@ -60,6 +60,12 @@ namespace aqua
 		Entity     entity;
 		Vector3    position;
 		Quaternion rotation;
+	};
+
+	enum class PhysicActorType
+	{
+		STATIC,
+		DYNAMIC
 	};
 
 	class PhysicsManager
@@ -102,7 +108,7 @@ namespace aqua
 
 		void setKinematicTarget(Instance i, const Vector3& position, const Quaternion& rotation = Quaternion());
 
-		const Matrix4x4& getWorld(Instance i) const;
+		PhysicPose getWorldPose(Instance i) const;
 
 		//------------------------------------------------------------------------------------
 
@@ -123,7 +129,7 @@ namespace aqua
 		void setCapacity(u32 new_capacity);
 
 	private:
-
+		//SoA
 		struct InstanceData
 		{
 			u32         size;

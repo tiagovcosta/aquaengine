@@ -5,7 +5,7 @@ using namespace aqua;
 const TransformManager::Instance TransformManager::INVALID_INSTANCE = { INVALID_INDEX };
 
 TransformManager::TransformManager(Allocator& allocator, u32 inital_capacity)
-	: _allocator(allocator), _map(allocator)
+	: _allocator(allocator), _map(allocator), _num_modified_transforms(0)
 {
 	_data.size     = 0;
 	_data.capacity = 0;
@@ -84,6 +84,11 @@ const ModifiedTransform* TransformManager::getModifiedTransforms() const
 	return _modified_transforms;
 }
 
+void TransformManager::clearModifiedTransforms()
+{
+	_num_modified_transforms = 0;
+}
+
 void TransformManager::setParent(Instance i, Instance parent)
 {
 	Instance old_parent = _data.parent[i];
@@ -157,35 +162,11 @@ void TransformManager::scale(Instance i, const Vector3& scale)
 
 void TransformManager::rotate(Instance i, const Quaternion& rotation, bool world_space)
 {
-	/*
-	Matrix4x4 x = Matrix4x4::CreateFromQuaternion(_data.local_rotation[i.i]);
-	Matrix4x4 y = Matrix4x4::CreateFromQuaternion(rotation);
-
-	_data.local_rotation[i.i] = Quaternion::CreateFromRotationMatrix(x*y);
-	*/
-
-	/*Quaternion conj;
-	rotation.Conjugate(conj);
-
-	Quaternion rot = rotation;
-
-	rot *= _data.local_rotation[i.i];
-	rot *= conj;
-
-	_data.local_rotation[i.i] = rot;
-	*/
-
 	if(world_space)
 		_data.local_rotation[i.i] = Quaternion::Concatenate(rotation, _data.local_rotation[i.i]);
 	else
 		_data.local_rotation[i.i] = Quaternion::Concatenate(_data.local_rotation[i.i], rotation);
 
-	/*
-	_data.local_rotation[i.i] *= rotation;
-	Quaternion conj;
-	rotation.Conjugate(conj);
-	_data.local_rotation[i.i] = conj * _data.local_rotation[i.i];
-	_data.local_rotation[i.i].Normalize();*/
 	transform(i);
 }
 
@@ -210,8 +191,6 @@ void TransformManager::translate(Instance i, const Vector3& translation, bool wo
 		_data.local_position[i.i] += t;
 	}
 
-	//_data.local_position[i.i] += translation;
-
 	transform(i);
 }
 
@@ -232,13 +211,17 @@ void TransformManager::transform(const Matrix4x4& parent, Instance i)
 	local._42 = _data.local_position[i.i].y;
 	local._43 = _data.local_position[i.i].z;
 
-	//_data.world[i.i] = _data.local[i.i] * p;
 	_data.world[i.i] = local * parent;
-	/*
+	
+	//Add transform to modified list
+	//TODO: Check if this instance is already in modified list
+
+	ASSERT(_num_modified_transforms != MAX_NUM_MODIFIED_TRANSFORMS);
+
 	ModifiedTransform& mt = _modified_transforms[_num_modified_transforms++];
 	mt.entity             = _data.entity[i.i];
 	mt.transform          = &_data.world[i.i];
-	*/
+	
 	Instance child = _data.first_child[i.i];
 
 	while(child.valid())
@@ -287,17 +270,7 @@ void TransformManager::setCapacity(u32 new_capacity)
 	ASSERT(pointer_math::isAligned(new_data.next_sibling));
 	ASSERT(pointer_math::isAligned(new_data.prev_sibling));
 	ASSERT(pointer_math::isAligned(new_data.world));
-	/*
-	ASSERT(pointer_math::isAligned(new_data.entity, __alignof(decltype(*new_data.entity))));
-	ASSERT(pointer_math::isAligned(new_data.local_position, __alignof(decltype(*new_data.local_position))));
-	ASSERT(pointer_math::isAligned(new_data.local_rotation, __alignof(decltype(*new_data.local_rotation))));
-	ASSERT(pointer_math::isAligned(new_data.local_scale, __alignof(decltype(*new_data.local_scale))));
-	ASSERT(pointer_math::isAligned(new_data.parent, __alignof(decltype(*new_data.parent))));
-	ASSERT(pointer_math::isAligned(new_data.first_child, __alignof(decltype(*new_data.first_child))));
-	ASSERT(pointer_math::isAligned(new_data.next_sibling, __alignof(decltype(*new_data.next_sibling))));
-	ASSERT(pointer_math::isAligned(new_data.prev_sibling, __alignof(decltype(*new_data.prev_sibling))));
-	ASSERT(pointer_math::isAligned(new_data.world, __alignof(decltype(*new_data.world))));
-	*/
+
 	if(_data.size > 0)
 	{
 		memcpy(new_data.entity, _data.entity, _data.size * sizeof(decltype(*new_data.entity)));

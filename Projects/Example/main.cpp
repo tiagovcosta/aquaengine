@@ -613,6 +613,12 @@ public:
 
 		_frame_num++;
 
+		_transform_manager->clearModifiedTransforms();
+
+		//--------------------------------------------------------------
+		// LOGIC
+		//--------------------------------------------------------------
+
 		if(_keys_pressed['K'])
 		{
 			spawnBoxes(10);

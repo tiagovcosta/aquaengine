@@ -72,8 +72,6 @@ namespace aqua
 		void	 destroy(Instance i);
 
 		void setMesh(Instance i, const MeshData* mesh);
-		void addSubset(Instance i, DrawCall draw_call, const Material* material);
-
 		void addSubset(Instance i, u8 index, const Material* material);
 
 		void setCapacity(u32 new_capacity);

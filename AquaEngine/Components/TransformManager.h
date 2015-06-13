@@ -54,6 +54,8 @@ namespace aqua
 		u32						 getNumModifiedTransforms() const;
 		const ModifiedTransform* getModifiedTransforms() const;
 
+		void clearModifiedTransforms();
+
 		void setParent(Instance i, Instance parent);
 
 		void setLocal(Instance i, const Vector3& position, const Quaternion& rotation, const Vector3& scale);
@@ -76,6 +78,7 @@ namespace aqua
 
 	private:
 
+		//SoA
 		struct InstanceData
 		{
 			u32         size;
@@ -101,7 +104,9 @@ namespace aqua
 
 		InstanceData _data;
 
+		static const u32 MAX_NUM_MODIFIED_TRANSFORMS = 16*1024;
+
 		u32				  _num_modified_transforms;
-		ModifiedTransform _modified_transforms[2048];
+		ModifiedTransform _modified_transforms[MAX_NUM_MODIFIED_TRANSFORMS];
 	};
 };

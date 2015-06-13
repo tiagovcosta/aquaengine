@@ -290,10 +290,13 @@ void PhysicsManager::setKinematicTarget(Instance i, const Vector3& position, con
 																			 PxQuat(rotation.x, rotation.y, rotation.z, rotation.w)));
 }
 
-const Matrix4x4& PhysicsManager::getWorld(Instance i) const
+PhysicPose PhysicsManager::getWorldPose(Instance i) const
 {
-	//return _data.actor[i.i];
-	return Matrix4x4();
+	const auto pose = _data.actor[i.i]->getGlobalPose();
+	const auto p    = pose.p;
+	const auto q    = pose.q;
+	
+	return{ Vector3(p.x, p.y, p.z), Quaternion(q.x, q.y, q.z, q.w) };
 }
 
 PhysicMaterial PhysicsManager::createMaterial(const PhysicMaterialDesc& desc)

@@ -39,20 +39,12 @@ ModelManager::ModelManager(Allocator& allocator, LinearAllocator& temp_allocator
 
 ModelManager::~ModelManager()
 {
-	//Release buffers and views
 	RenderDevice* render_device = _renderer->getRenderDevice();
 
 	for(u32 i = 0; i < _data.size; i++)
 	{
 		render_device->deleteParameterGroup(*_params_groups_allocator, *_data.instance_params[i]);
 	}
-
-	/*
-	render_device->release(_line.mesh->getVertexBuffer(0).buffer);
-	render_device->release(_line.mesh->index_buffer);
-
-	_allocator.deallocate(_line.mesh);
-	*/
 
 	if(_data.capacity > 0)
 		_allocator.deallocate(_data.buffer);
@@ -64,17 +56,31 @@ void ModelManager::update()
 {
 	RenderDevice& render_device = *_renderer->getRenderDevice();
 
-	for(u32 i = 0; i < _data.size; i++)
+	auto params_desc_set = _render_shader->getInstanceParameterGroupDescSet();
+
+	const u32 num_modified_transforms = _transform_manager->getNumModifiedTransforms();
+	auto modified_transforms          = _transform_manager->getModifiedTransforms();
+
+	for(u32 k = 0; k < num_modified_transforms; k++)
 	{
-		auto params_desc_set = _render_shader->getInstanceParameterGroupDescSet();
-		auto params_desc     = getParameterGroupDesc(*params_desc_set, _data.permutation[i]);
+		auto i = lookup(modified_transforms[k].entity).i;
+
+		if(i == INVALID_INDEX)
+			continue;
+
+		ASSERT(i < _data.size);
+			
+		auto params_desc = getParameterGroupDesc(*params_desc_set, _data.permutation[i]);
 
 		//Update world matrix
 		u32 offset = params_desc->getConstantOffset(getStringID("world"));
 
+		ASSERT(offset != UINT32_MAX);
+
 		Matrix4x4* world = (Matrix4x4*)pointer_math::add(_data.instance_params[i]->getCBuffersData(), offset);
 
-		*world = _transform_manager->getWorld(_transform_manager->lookup(_data.entity[i]));
+		//*world = _transform_manager->getWorld(_transform_manager->lookup(_data.entity[i]));
+		*world = *modified_transforms[k].transform;
 
 		//update bounding sphere
 		Vector3 scale;
@@ -84,11 +90,15 @@ void ModelManager::update()
 		world->Decompose(scale, rotation, translation);
 
 		float max_scale = max(scale.x, scale.y);
-		max_scale = max(max_scale, scale.z);
+		max_scale       = max(max_scale, scale.z);
 
 		_data.bounding_sphere[i].center = Vector3::Transform(_data.bounding_sphere2[i].center, *world);
 		_data.bounding_sphere[i].radius = _data.bounding_sphere2[i].radius * max_scale;
+	}
 
+	// TODO: Move this to extract and only cache visible instances param groups
+	for(u32 i = 0; i < _data.size; i++)
+	{
 		//Cache instance parameter group
 		_data.cached_instance_params[i] = render_device.cacheTemporaryParameterGroup(*_data.instance_params[i]);
 	}
