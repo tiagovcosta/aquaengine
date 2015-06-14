@@ -151,6 +151,36 @@ public:
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
 													  1, &view_desc, &_lighting_buffer_sr, &_lighting_buffer_rt, nullptr, &_lighting_buffer_uav);
 
+		//----------------------------------------------------------------------
+		
+		// COMPOSITE BUFFER (LIGHTING + REFLECTIONS + SKYDOME)
+
+		Texture2DDesc composite_texture_desc;
+		composite_texture_desc.width          = _width;
+		composite_texture_desc.height         = _height;
+		composite_texture_desc.mip_levels     = 1;
+		composite_texture_desc.array_size     = 1;
+		composite_texture_desc.format         = RenderResourceFormat::RGBA16_FLOAT;
+		composite_texture_desc.sample_count   = 1;
+		composite_texture_desc.sample_quality = 0;
+		composite_texture_desc.update_mode    = UpdateMode::GPU;
+		composite_texture_desc.generate_mips  = false;
+
+		TextureViewDesc rt_view_desc;
+		rt_view_desc.format            = RenderResourceFormat::RGBA16_FLOAT;
+		rt_view_desc.most_detailed_mip = 0;
+		rt_view_desc.mip_levels        = 1;
+
+		TextureViewDesc sr_view_desc;
+		sr_view_desc.format            = RenderResourceFormat::RGBA16_FLOAT;
+		sr_view_desc.most_detailed_mip = 0;
+		sr_view_desc.mip_levels        = -1;
+
+		_renderer->getRenderDevice()->createTexture2D(composite_texture_desc, nullptr, 1, &sr_view_desc, 1, &rt_view_desc, 0, nullptr,
+													  0, nullptr, &_composite_target_sr, &_composite_target, nullptr, nullptr);
+
+		//----------------------------------------------------------------------
+
 		//DOF BUFFER
 
 		texture_desc.width          = _width;
@@ -169,6 +199,16 @@ public:
 
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
 													  0, nullptr, &_dof_sr, &_dof_rt, nullptr, nullptr);
+
+		// Reflections composite shader
+		auto reflections_composite_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/reflections_composite.cshader"));
+		_reflections_composite_shader_permutation = reflections_composite_shader->getPermutation(0);
+
+		auto reflections_composite_params_desc_set = reflections_composite_shader->getInstanceParameterGroupDescSet();
+		_reflections_composite_params_desc         = getParameterGroupDesc(*reflections_composite_params_desc_set, 0);
+
+		_reflections_composite_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
+																						   *_reflections_composite_params_desc, UINT32_MAX, 0, nullptr);
 
 		//Apply Gamma
 		auto apply_gamma_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/apply_gamma.cshader"));
@@ -197,9 +237,13 @@ public:
 		RenderDevice& render_device = *_renderer->getRenderDevice();
 
 		render_device.deleteParameterGroup(*_allocator, *_apply_gamma_params);
+		render_device.deleteParameterGroup(*_allocator, *_reflections_composite_params);
 
 		RenderDevice::release(_dof_rt);
 		RenderDevice::release(_dof_sr);
+
+		RenderDevice::release(_composite_target);
+		RenderDevice::release(_composite_target_sr);
 
 		RenderDevice::release(_lighting_buffer_uav);
 		RenderDevice::release(_lighting_buffer_rt);
@@ -420,54 +464,10 @@ public:
 		profiler->endScope(scope_id);
 
 		//-----------------------------------------------
-		//Skydome pass
-		//-----------------------------------------------
-
-		scope_id = profiler->beginScope("skydome");
-
-		RenderTexture kkk = { _lighting_buffer_rt, nullptr, _width, _height, 1 };
-
-		//_renderer->setRenderTarget(*args.viewport, 1, args.target, _depth_target2);
-		_renderer->setViewport(*args.viewport, _width, _height);
-		_renderer->setRenderTarget(1, &kkk, _depth_target2);
-
-		pass_index = _renderer->getShaderManager()->getPassIndex(passes_names[(u8)PassNameIndex::SKYDOOME]);
-
-		_renderer->render(pass_index, queues[(u8)PassNameIndex::SKYDOOME]);
-
-		profiler->endScope(scope_id);
-
-		//-----------------------------------------------
 		//Transparency
 		//-----------------------------------------------
 
-		//-----------------------------------------------
-		//Post process
-		//-----------------------------------------------
-
-		//scope_id = profiler->beginScope("post_process");
-
-		/*
-		DrawCall dc = createDrawCall(false, 3, 0, 0);
-
-		Mesh mesh;
-		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
-
-		RenderItem render_item;
-		render_item.draw_call         = &dc;
-		render_item.num_instances     = 1;
-		//render_item.shader          = _ssao_shader_permutation[0];
-		//render_item.instance_params = _ssao_params;
-		render_item.shader            = _apply_gamma_shader_permutation[0];
-		render_item.instance_params   = _apply_gamma_params;
-		render_item.material_params   = nullptr;
-		render_item.mesh              = &mesh;
-
-		_renderer->setViewport(*args.viewport, args.target->width, args.target->height);
-		_renderer->setRenderTarget(1, args.target, nullptr);
-
-		_renderer->render(render_item);
-		*/
+		
 
 		//-------------------------------------------------------------
 
@@ -482,8 +482,6 @@ public:
 			ssr_args.color_texture     = _lighting_buffer_sr;
 			ssr_args.normal_texture    = _normal_buffer_sr;
 			ssr_args.depth_texture     = _depth_target2_sr;
-			ssr_args.material_texture  = _color_buffer_sr;
-			ssr_args.rayleigh_texture  = args.rayleigh_texture;
 			ssr_args.viewport          = args.viewport;
 			ssr_args.thickness         = args.thickness;
 			ssr_args.output            = &ssr_output;
@@ -494,9 +492,81 @@ public:
 		}
 		else
 		{
-			ssr_output = _lighting_buffer_sr;
+			ssr_output = nullptr;
 		}
+
+		//-----------------------------------------------
+		// Composite
+		//-----------------------------------------------
+
+		{
+			scope_id = profiler->beginScope("composite");
+
+			_renderer->getRenderDevice()->unbindResources();
+
+			_renderer->bindFrameParameters();
+			_renderer->bindViewParameters();
+
+			_reflections_composite_params->setSRV(_lighting_buffer_sr, 0);
+			_reflections_composite_params->setSRV(ssr_output, 1);
+			_reflections_composite_params->setSRV(_normal_buffer_sr, 2);
+			_reflections_composite_params->setSRV(_depth_target2_sr, 3);
+			_reflections_composite_params->setSRV(_color_buffer_sr, 4);
+			_reflections_composite_params->setSRV(args.rayleigh_texture, 5);
+
+			//u8 index = _composite_params_desc->getSRVIndex(getStringID("rayleigh_texture"));
+
+			DrawCall dc = createDrawCall(false, 3, 0, 0);
+
+			Mesh mesh;
+			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
+
+			RenderItem render_item;
+			render_item.draw_call       = &dc;
+			render_item.num_instances   = 1;
+			render_item.shader          = _reflections_composite_shader_permutation[0];
+			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_reflections_composite_params);
+			render_item.material_params = nullptr;
+			render_item.mesh            = &mesh;
+
+			_renderer->setViewport(*args.viewport, _width, _height);
+
+			RenderTexture rt;
+			rt.render_target = _composite_target;
+			rt.width         = _width;
+			rt.height        = _height;
+
+			_renderer->setRenderTarget(1, &rt, nullptr);
+			//_renderer->setRenderTarget(1, args.target, nullptr);
+
+			_renderer->render(render_item);
+
+			profiler->endScope(scope_id);
+		}
+
 		//-------------------------------------------------------------
+
+		//-----------------------------------------------
+		//Skydome pass
+		//-----------------------------------------------
+
+		scope_id = profiler->beginScope("skydome");
+
+		RenderTexture kkk = { _composite_target, nullptr, _width, _height, 1 };
+
+		//_renderer->setRenderTarget(*args.viewport, 1, args.target, _depth_target2);
+		_renderer->setViewport(*args.viewport, _width, _height);
+		_renderer->setRenderTarget(1, &kkk, _depth_target2);
+
+		pass_index = _renderer->getShaderManager()->getPassIndex(passes_names[(u8)PassNameIndex::SKYDOOME]);
+
+		_renderer->render(pass_index, queues[(u8)PassNameIndex::SKYDOOME]);
+
+		profiler->endScope(scope_id);
+
+		//-----------------------------------------------
+		//Post process
+		//-----------------------------------------------
 
 		scope_id = profiler->beginScope("depth_of_field");
 
@@ -508,7 +578,7 @@ public:
 
 		DepthOfField::Args dof_args;
 		dof_args.camera                      = args.camera;
-		dof_args.color_texture               = ssr_output;
+		dof_args.color_texture               = _composite_target_sr;
 		dof_args.depth_texture               = _depth_target2_sr;
 		dof_args.target                      = &dof;
 		dof_args.viewport                    = args.viewport;
@@ -592,8 +662,15 @@ private:
 	RenderTargetH		_lighting_buffer_rt;
 	ShaderResourceH		_lighting_buffer_sr;
 
+	RenderTargetH       _composite_target; //(LIGHTING + REFLECTIONS + SKYDOME)
+	ShaderResourceH		_composite_target_sr;
+
 	RenderTargetH       _dof_rt;
 	ShaderResourceH		_dof_sr;
+
+	ShaderPermutation         _reflections_composite_shader_permutation;
+	const ParameterGroupDesc* _reflections_composite_params_desc;
+	ParameterGroup*           _reflections_composite_params;
 
 	ShaderPermutation         _apply_gamma_shader_permutation;
 	const ParameterGroupDesc* _apply_gamma_params_desc;

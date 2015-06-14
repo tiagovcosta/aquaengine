@@ -1209,8 +1209,8 @@ private:
 
 			char* cbuffer_data = (char*)params->getCBuffersData();
 
-			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 1.0f, 1.0f); //diffuse color
-			*(Vector2*)(cbuffer_data + 12) = Vector2(0.1f, 0.1f);  //f0 + roughness
+			*(Vector3*)(cbuffer_data) = Vector3(1.0f, 0.898039f, 0.619607f); //color (gold srgb)
+			*(Vector2*)(cbuffer_data + 12) = Vector2(1.0f, 0.1f);  //f0 + roughness
 
 			_player_material.params = render_device.cacheParameterGroup(*params);
 

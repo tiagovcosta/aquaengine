@@ -25,8 +25,6 @@ namespace aqua
 			ShaderResourceH color_texture;
 			ShaderResourceH normal_texture;
 			ShaderResourceH depth_texture;
-			ShaderResourceH material_texture;
-			ShaderResourceH rayleigh_texture;
 			const Camera*   camera;
 			const Viewport* viewport;
 
@@ -57,9 +55,6 @@ namespace aqua
 
 		RenderTargetH       _glossiness_chain_target[NUM_GLOSSINESS_MIPS];
 		ShaderResourceH		_glossiness_chain_target_sr[NUM_GLOSSINESS_MIPS];
-
-		RenderTargetH       _composite_target;
-		ShaderResourceH		_composite_target_sr;
 
 		ShaderPermutation         _ssr_shader_permutation;
 		const ParameterGroupDesc* _ssr_params_desc;

@@ -65,34 +65,6 @@ void ScreenSpaceReflections::init(aqua::Renderer& renderer, lua_State* lua_state
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, NUM_GLOSSINESS_MIPS, sr_view_descs, 
 													  NUM_GLOSSINESS_MIPS, rt_view_descs, 0, nullptr, 0, nullptr, 
 													  _glossiness_chain_target_sr, _glossiness_chain_target, nullptr, nullptr);
-
-		//----------------------------------------------------------------------
-
-		Texture2DDesc composite_texture_desc;
-		composite_texture_desc.width          = _width;
-		composite_texture_desc.height         = _height;
-		composite_texture_desc.mip_levels     = 1;
-		composite_texture_desc.array_size     = 1;
-		composite_texture_desc.format         = RenderResourceFormat::RGBA16_FLOAT;
-		composite_texture_desc.sample_count   = 1;
-		composite_texture_desc.sample_quality = 0;
-		composite_texture_desc.update_mode    = UpdateMode::GPU;
-		composite_texture_desc.generate_mips  = false;
-		
-		TextureViewDesc rt_view_desc;
-		rt_view_desc.format            = RenderResourceFormat::RGBA16_FLOAT;
-		rt_view_desc.most_detailed_mip = 0;
-		rt_view_desc.mip_levels        = 1;
-
-		TextureViewDesc sr_view_desc;
-		sr_view_desc.format            = RenderResourceFormat::RGBA16_FLOAT;
-		sr_view_desc.most_detailed_mip = 0;
-		sr_view_desc.mip_levels        = -1;
-
-		_renderer->getRenderDevice()->createTexture2D(composite_texture_desc, nullptr, 1, &sr_view_desc, 1, &rt_view_desc, 0, nullptr,
-													  0, nullptr, &_composite_target_sr, &_composite_target, nullptr, nullptr);
-
-
 	}
 
 	//------------------------------------------------------------------------------------------------
@@ -163,9 +135,6 @@ void ScreenSpaceReflections::shutdown()
 	}
 
 	RenderDevice::release(_reflection_target_sr[NUM_GLOSSINESS_MIPS]);
-
-	RenderDevice::release(_composite_target);
-	RenderDevice::release(_composite_target_sr);
 };
 
 u32 ScreenSpaceReflections::getSecondaryViews(const Camera& camera, RenderView* out_views)
@@ -339,56 +308,7 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		}
 	}
 
-	//-----------------------------------------------
-	// Composite
-	//-----------------------------------------------
-
-	{
-		scope_id = profiler->beginScope("composite");
-
-		_renderer->getRenderDevice()->unbindResources();
-
-		_renderer->bindFrameParameters();
-		_renderer->bindViewParameters();
-
-		_composite_params->setSRV(args.color_texture, 0);
-		_composite_params->setSRV(_reflection_target_sr[NUM_GLOSSINESS_MIPS], 1);
-		_composite_params->setSRV(args.normal_texture, 2);
-		_composite_params->setSRV(args.depth_texture, 3);
-		_composite_params->setSRV(args.material_texture, 4);
-		_composite_params->setSRV(args.rayleigh_texture, 5);
-
-		//u8 index = _composite_params_desc->getSRVIndex(getStringID("rayleigh_texture"));
-		
-		DrawCall dc = createDrawCall(false, 3, 0, 0);
-
-		Mesh mesh;
-		mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
-
-		RenderItem render_item;
-		render_item.draw_call       = &dc;
-		render_item.num_instances   = 1;
-		render_item.shader          = _composite_shader_permutation[0];
-		render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_composite_params);
-		render_item.material_params = nullptr;
-		render_item.mesh            = &mesh;
-
-		_renderer->setViewport(*args.viewport, _width, _height);
-
-		RenderTexture rt;
-		rt.render_target = _composite_target;
-		rt.width         = _width;
-		rt.height        = _height;
-
-		_renderer->setRenderTarget(1, &rt, nullptr);
-		//_renderer->setRenderTarget(1, args.target, nullptr);
-
-		_renderer->render(render_item);
-
-		profiler->endScope(scope_id);
-	}
-
-	*args.output = _composite_target_sr;
+	*args.output = _reflection_target_sr[NUM_GLOSSINESS_MIPS];
 };
 
 void ScreenSpaceReflections::generate(lua_State* lua_state)

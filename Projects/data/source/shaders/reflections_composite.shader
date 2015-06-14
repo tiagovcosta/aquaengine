@@ -1,6 +1,6 @@
 type = "render"
 
-include = [ "shadow_mapping" ]
+include = [ ]
 
 passes =
 {
