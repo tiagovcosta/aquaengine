@@ -107,9 +107,9 @@ snippets =
 
 				float3 position_vs = input.view_ray * depth;
 
-			    float3 view_dir = normalize( camera_position - position_vs );
+			    float3 view_dir = normalize( position_vs );
 
-			    float3 fresnel_specular = Ks + (1 - Ks) * pow(1-dot(view_dir, normal), 5);
+			    float3 fresnel_specular = Ks + (1 - Ks) * pow(1-dot(-view_dir, normal), 5);
 
 			    //fresnel_specular = saturate(fresnel_specular * 1000);
 
