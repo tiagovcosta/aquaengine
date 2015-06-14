@@ -37,6 +37,8 @@ public:
 		Vector3              sun_dir;
 		Vector3              sun_color;
 
+		ShaderResourceH		 rayleigh_texture;
+
 		//Volumetric Lights args
 		bool                 enable_volumetric_lights;
 
@@ -481,6 +483,7 @@ public:
 			ssr_args.normal_texture    = _normal_buffer_sr;
 			ssr_args.depth_texture     = _depth_target2_sr;
 			ssr_args.material_texture  = _color_buffer_sr;
+			ssr_args.rayleigh_texture  = args.rayleigh_texture;
 			ssr_args.viewport          = args.viewport;
 			ssr_args.thickness         = args.thickness;
 			ssr_args.output            = &ssr_output;

@@ -34,6 +34,8 @@ namespace aqua
 		void update();
 
 		Vector3 getSunColor() const;
+		ShaderResourceH getRayleightScatteringTexture() const;
+		ShaderResourceH getMieScatteringTexture() const;
 
 		void setSunDirection(const Vector3& direction);
 		void setScattering(ShaderResourceH scattering);
@@ -51,12 +53,12 @@ namespace aqua
 		const ParameterGroupDesc* _instance_params_desc;
 
 		const RenderShader*      _update_rayleigh_shader;
-		ShaderPermutation _update_rayleigh_shader_permutation;
+		ShaderPermutation		 _update_rayleigh_shader_permutation;
 
 		const ParameterGroupDesc* _update_instance_params_desc;
 
 		const RenderShader*      _update_mie_shader;
-		ShaderPermutation _update_mie_shader_permutation;
+		ShaderPermutation		 _update_mie_shader_permutation;
 
 		Mesh*    _dome_mesh;
 		DrawCall _dome_draw_call;

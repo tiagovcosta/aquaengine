@@ -249,7 +249,7 @@ snippets =
 
 				float3 position = input.view_ray * depth;
 
-				float3 ray_dir = normalize( reflect(normalize(position), normalize(normal)) );
+				float3 ray_dir = normalize( reflect(normalize(position), normal) );
 /*
 				float4 p = float4(position + ray_dir, 1.0f);
 				p = mul(p, proj);

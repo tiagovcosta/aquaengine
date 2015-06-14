@@ -658,10 +658,17 @@ Vector3 DynamicSky::getSunColor() const
 
 	Vector3 mie = mie_sum * KmESun;
 
-	float x = getRayleighPhase(1.0f);
-	float y = getMiePhase(-1.0f, 1.0f);
-
 	Vector3 color = getRayleighPhase(1.0f) * rayleigh + getMiePhase(-1.0f, 1.0f) * mie;
 
 	return color;
+}
+
+ShaderResourceH DynamicSky::getRayleightScatteringTexture() const
+{
+	return _rayleigh2_sr;
+}
+
+ShaderResourceH DynamicSky::getMieScatteringTexture() const
+{
+	return _mie2_sr;
 }

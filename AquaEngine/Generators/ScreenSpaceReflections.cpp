@@ -356,6 +356,9 @@ void ScreenSpaceReflections::generate(const void* args_, const VisibilityData* v
 		_composite_params->setSRV(args.normal_texture, 2);
 		_composite_params->setSRV(args.depth_texture, 3);
 		_composite_params->setSRV(args.material_texture, 4);
+		_composite_params->setSRV(args.rayleigh_texture, 5);
+
+		//u8 index = _composite_params_desc->getSRVIndex(getStringID("rayleigh_texture"));
 		
 		DrawCall dc = createDrawCall(false, 3, 0, 0);
 

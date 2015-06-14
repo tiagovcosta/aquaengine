@@ -867,10 +867,11 @@ public:
 		_main_view_generator.setSunLightDir(_transform_manager->getWorld(sun_transform).Backward());
 
 		MainViewGenerator::Args args;
-		args.target    = &rt;
-		args.viewport  = &vp;
-		args.camera    = &_camera;
-		args.sun_color = _sun_color;
+		args.target           = &rt;
+		args.viewport         = &vp;
+		args.camera           = &_camera;
+		args.sun_color        = _sun_color;
+		args.rayleigh_texture = _dynamic_sky->getRayleightScatteringTexture();
 
 		if(_enable_volumetric_light)
 		{

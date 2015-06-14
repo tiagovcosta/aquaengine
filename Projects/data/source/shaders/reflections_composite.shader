@@ -30,6 +30,7 @@ instance =
 		normal_texture = { type = Texture2D }
 		depth_texture = { type = Texture2D }
 		material_texture = { type = Texture2D }
+		rayleigh_texture = { type = Texture2D }
 	}
 
 	options =
@@ -91,8 +92,6 @@ snippets =
 
 				float4 reflection = reflection_texture.SampleLevel(tri_linear_clamp_sampler, input.tex_coord, roughness * 5);
 
-				//return color + reflection.rgb * reflection.a;
-
 				float4 color_f0 = material_texture.Load(uint3(input.position.xy, 0));
 				color_f0.rgb    = pow(color_f0.rgb, 2.2);
 				
@@ -113,7 +112,14 @@ snippets =
 
 			    //fresnel_specular = saturate(fresnel_specular * 1000);
 
-				return color + reflection.rgb * reflection.a * fresnel_specular;
+			    float3 ray_dir = normalize( reflect(view_dir, normal) );
+
+			    // (3.14f / 1.5f) should be (3.14f / 2) however this "hack" makes reflections look better
+			    float2 spherical_coord = float2(acos(ray_dir.y) / (3.14f / 1.5f), atan2(ray_dir.z, ray_dir.x) / (2 * 3.14f));
+
+			    float3 rayleigh = rayleigh_texture.Sample(tri_linear_clamp_sampler, spherical_coord).rgb;
+
+				return color + (reflection.rgb * reflection.a + rayleigh * (1-reflection.a)) * fresnel_specular;
 			}
 		"""
 	}
