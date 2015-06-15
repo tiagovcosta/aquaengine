@@ -98,8 +98,7 @@ snippets =
 				//output.position   = mul(float4(input.pos, 1.0f), world_view_proj);
 				output.position   = mul(mul(float4(input.pos * clip_distances.y * 0.9f, 1.0f), world) + float4(camera_position, 0.0f), view_proj);
 				output.tex_coord0 = input.tex_coord;
-				//vOut.tex_coord1   = -input.pos;
-				output.tex_coord1   = -input.pos;
+				output.tex_coord1 = -input.pos;
 
 				return output;
 			}
@@ -134,11 +133,11 @@ snippets =
 				float fCos = dot( sun_dir, input.tex_coord1 ) / length( input.tex_coord1 );
 				float fCos2 = fCos * fCos;
 				
-				float3 v3RayleighSamples = rayleigh_scatter.Sample(tri_linear_clamp_sampler, input.tex_coord0).xyz;
-				float3 v3MieSamples = mie_scatter.Sample(tri_linear_clamp_sampler, input.tex_coord0).xyz;
+				float3 rayleigh = rayleigh_scatter.Sample(tri_linear_clamp_sampler, input.tex_coord0).xyz;
+				float3 mie = mie_scatter.Sample(tri_linear_clamp_sampler, input.tex_coord0).xyz;
 
 				float3 color;
-				color.rgb = getRayleighPhase(fCos2) * v3RayleighSamples.rgb + getMiePhase(fCos, fCos2) * v3MieSamples.rgb;
+				color.rgb = getRayleighPhase(fCos2) * rayleigh.rgb + getMiePhase(fCos, fCos2) * mie.rgb;
 
 				color.rgb += max(0, 1-color.rgb)*float3(0.00f, 0.00f, 0.005f);
 

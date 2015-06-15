@@ -101,15 +101,6 @@ snippets =
 
 			float3 ps_main( PS_INPUT input) : SV_TARGET0
 			{
-				/*
-				float4 output = 0.0f;
-
-				//output.rgb = input_texture.Sample(tri_point_clamp_sampler, input.tex_coord).rgb;
-				output.rgb = input_texture.Load(uint3(input.position.xy, 0)).rgb;
-
-				return output;
-				*/
-
 				float depth = depth_texture.Load(uint3(input.position.xy, 0)).r;
 
 				//depth = proj._43 / (depth - proj._33);

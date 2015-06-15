@@ -85,12 +85,8 @@ snippets =
 					}
 				}
 
-
 				result /= COUNT*COUNT;
-/*
-				if(result.r < 0.9f)
-					result /= 2.0f;
-*/
+
 				return result;
 			}
 		"""

@@ -63,9 +63,9 @@ snippets =
 				output.tex_coord =  float2((vertex_id << 1) & 2, vertex_id & 2);
     			output.position  = float4(output.tex_coord * float2(2,-2) + float2(-1,1), 1, 1);
 
-    			float3 position_ws = mul(output.position, inv_proj).xyz;
+    			float3 position_vs = mul(output.position, inv_proj).xyz;
 
-    			output.view_ray = float3(position_ws.xy / position_ws.z, 1.0f);
+    			output.view_ray = float3(position_vs.xy / position_vs.z, 1.0f);
 
 				return output;
 			}

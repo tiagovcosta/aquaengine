@@ -4,6 +4,14 @@ Welcome to the Aqua Engine source code!
 
 You can [download a small demo here](http://tiagovcosta.com/Aqua_Engine_Demo.rar)! (requires Windows 7+ 64bit and a D3D11 compatible GPU).
 
+Controls:
+WSAD - Camera Movement
+Mouse + Right Click - Camera Rotation
+Arrows - Rotate Sun
+K - Spawn Boxes
+
+----------------------------------------------------------------------
+
 Also, [visit the engine website](http://www.tiagovcosta.com/aqua).
 
 ##Branches

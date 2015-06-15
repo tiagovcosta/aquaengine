@@ -503,10 +503,6 @@ snippets =
 		       	//result += float3(0.01f, 0.01f, 0.01f) * Rd * ssao_buffer.Load( uint3(globalIdx.x,globalIdx.y,0) );
 		       	result += float3(0.1f, 0.1f, 0.1f) * Rd * ssao_buffer.Load( uint3(globalIdx.x,globalIdx.y,0) );
 		       	
-		       	//result *= float3(0.0001f, 0.0001f, 0.0001f);
-		       	//result += ssao_buffer.Load( uint3(globalIdx.x,globalIdx.y,0) );
-
-		       	//result += scattering.Load( uint3(globalIdx.x,globalIdx.y,0) );
 		       	result += scattering.Load( uint3(globalIdx.x/2,globalIdx.y/2,0) );
 
 	       	#if LIGHTS_PER_TILE_MODE
