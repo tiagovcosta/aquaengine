@@ -872,6 +872,7 @@ public:
 		args.camera           = &_camera;
 		args.sun_color        = _sun_color;
 		args.rayleigh_texture = _dynamic_sky->getRayleightScatteringTexture();
+		args.prev_view_proj   = _prev_view_proj;
 
 		if(_enable_volumetric_light)
 		{
@@ -991,6 +992,8 @@ public:
 		render();
 
 		_renderer.getProfiler()->endFrame();
+
+		_prev_view_proj = _camera.getViewProj();
 
 		return true;
 	}
@@ -1419,6 +1422,8 @@ private:
 	Vector3 _sun_color;
 
 	PhysicMaterial _physic_material;
+
+	Matrix4x4 _prev_view_proj;
 
 	bool _enable_volumetric_light;
 	bool _enable_volumetric_light_prev;

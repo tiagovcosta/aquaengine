@@ -1,6 +1,5 @@
 #pragma once
 
-#include "..\Renderer\RendererInterfaces.h"
 #include "..\Renderer\RenderDevice\RenderDeviceTypes.h"
 
 #include "..\AquaMath.h"

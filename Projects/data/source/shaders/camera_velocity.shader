@@ -19,7 +19,7 @@ instance =
 		{
 			//input_texel_size = float2
 			//curr_view = float4x4
-			prev_view_proj = float4x4
+			inv_view_prev_view_proj = float4x4
 		}
 	}
 	
@@ -83,20 +83,18 @@ snippets =
 			float2 ps_main( PS_INPUT input) : SV_TARGET0
 			{
 				float depth = depth_texture.Load(uint3(input.position.xy, 0)).r;
-
-				//depth = proj._43 / (depth - proj._33);
-				depth = convertProjDepthToView(depth);
+				depth 		= convertProjDepthToView(depth);
 
 				//float3 position = camera_position + input.view_ray * depth;
 				float3 position = input.view_ray * depth;
 
-				position = mul(float4(position, 1.0f), inv_view).xyz;
-
-				float4 prev_position = mul(float4(position, 1.0f), prev_view_proj);
+				float4 prev_position = mul(float4(position, 1.0f), inv_view_prev_view_proj);
 
 				prev_position.xy /= prev_position.w;
+				prev_position.y = -prev_position.y;
+				prev_position.xy = prev_position.xy * 0.5f + 0.5f;
 
-				return input.position.xy - prev_position.xy;
+				return (prev_position.xy - input.tex_coord.xy) * 0.5f + 0.5f;
 			}
 		"""
 	}
