@@ -39,6 +39,8 @@ public:
 
 		ShaderResourceH		 rayleigh_texture;
 
+		Matrix4x4			 prev_view_proj;
+
 		//Volumetric Lights args
 		bool                 enable_volumetric_lights;
 
@@ -97,6 +99,25 @@ public:
 		*/
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc2, 0, nullptr, 1, &view_desc,
 													  0, nullptr, &_depth_target2_sr, nullptr, &_depth_target2, nullptr);
+
+		//VELOCITY BUFFER
+
+		texture_desc.width          = _width;
+		texture_desc.height         = _height;
+		texture_desc.mip_levels     = 1;
+		texture_desc.array_size     = 1;
+		texture_desc.format         = RenderResourceFormat::RG8_UNORM;
+		texture_desc.sample_count   = 1;
+		texture_desc.sample_quality = 0;
+		texture_desc.update_mode    = UpdateMode::GPU;
+		texture_desc.generate_mips  = false;
+
+		view_desc.format            = RenderResourceFormat::RG8_UNORM;
+		view_desc.most_detailed_mip = 0;
+		view_desc.mip_levels        = -1;
+
+		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
+													  0, nullptr, &_velocity_buffer_sr, &_velocity_buffer_rt, nullptr, nullptr);
 
 		//COLOR BUFFER
 
@@ -200,6 +221,16 @@ public:
 		_renderer->getRenderDevice()->createTexture2D(texture_desc, nullptr, 1, &view_desc, 1, &view_desc, 0, nullptr,
 													  0, nullptr, &_dof_sr, &_dof_rt, nullptr, nullptr);
 
+		// Camera velocity shader
+		auto camera_velocity_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/camera_velocity.cshader"));
+		_camera_velocity_shader_permutation = camera_velocity_shader->getPermutation(0);
+
+		auto camera_velocity_params_desc_set = camera_velocity_shader->getInstanceParameterGroupDescSet();
+		_camera_velocity_params_desc         = getParameterGroupDesc(*camera_velocity_params_desc_set, 0);
+
+		_camera_velocity_params = _renderer->getRenderDevice()->createParameterGroup(*_allocator, RenderDevice::ParameterGroupType::INSTANCE,
+																					 *_camera_velocity_params_desc, UINT32_MAX, 0, nullptr);
+
 		// Reflections composite shader
 		auto reflections_composite_shader         = _renderer->getShaderManager()->getRenderShader(getStringID("data/shaders/reflections_composite.cshader"));
 		_reflections_composite_shader_permutation = reflections_composite_shader->getPermutation(0);
@@ -238,6 +269,7 @@ public:
 
 		render_device.deleteParameterGroup(*_allocator, *_apply_gamma_params);
 		render_device.deleteParameterGroup(*_allocator, *_reflections_composite_params);
+		render_device.deleteParameterGroup(*_allocator, *_camera_velocity_params);
 
 		RenderDevice::release(_dof_rt);
 		RenderDevice::release(_dof_sr);
@@ -251,6 +283,9 @@ public:
 
 		RenderDevice::release(_ssao_buffer_rt);
 		RenderDevice::release(_ssao_buffer_sr);
+
+		RenderDevice::release(_velocity_buffer_rt);
+		RenderDevice::release(_velocity_buffer_sr);
 
 		RenderDevice::release(_normal_buffer_rt);
 		RenderDevice::release(_normal_buffer_sr);
@@ -380,6 +415,51 @@ public:
 		pass_index = _renderer->getShaderManager()->getPassIndex(passes_names[(u8)PassNameIndex::GBUFFER_ALPHA_MASKED]);
 
 		_renderer->render(pass_index, queues[(u8)PassNameIndex::GBUFFER_ALPHA_MASKED]);
+
+		profiler->endScope(scope_id);
+
+		//-----------------------------------------------
+		// Camera Velocity
+		//-----------------------------------------------
+
+		scope_id = profiler->beginScope("camera_velocity");
+
+		{
+			_renderer->getRenderDevice()->unbindResources();
+
+			_renderer->bindFrameParameters();
+			_renderer->bindViewParameters();
+
+			_camera_velocity_params->setSRV(_depth_target2_sr, 0);
+
+			u32 offset                         = _camera_velocity_params_desc->getConstantOffset(getStringID("inv_view_prev_view_proj"));
+			Matrix4x4* inv_view_prev_view_proj = (Matrix4x4*)pointer_math::add(_camera_velocity_params->getCBuffersData(), offset);
+			*inv_view_prev_view_proj           = args.camera->getView().Invert() * args.prev_view_proj;
+
+			DrawCall dc = createDrawCall(false, 3, 0, 0);
+
+			Mesh mesh;
+			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
+
+			RenderItem render_item;
+			render_item.draw_call       = &dc;
+			render_item.num_instances   = 1;
+			render_item.shader          = _camera_velocity_shader_permutation[0];
+			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_camera_velocity_params);
+			render_item.material_params = nullptr;
+			render_item.mesh            = &mesh;
+
+			_renderer->setViewport(*args.viewport, _width, _height);
+
+			RenderTexture rt;
+			rt.render_target = _velocity_buffer_rt;
+			rt.width         = _width;
+			rt.height        = _height;
+
+			_renderer->setRenderTarget(1, &rt, nullptr);
+
+			_renderer->render(render_item);
+		}
 
 		profiler->endScope(scope_id);
 
@@ -552,6 +632,11 @@ public:
 
 		scope_id = profiler->beginScope("skydome");
 
+		_renderer->getRenderDevice()->unbindResources();
+
+		_renderer->bindFrameParameters();
+		_renderer->bindViewParameters();
+
 		RenderTexture kkk = { _composite_target, nullptr, _width, _height, 1 };
 
 		//_renderer->setRenderTarget(*args.viewport, 1, args.target, _depth_target2);
@@ -655,6 +740,9 @@ private:
 	RenderTargetH       _normal_buffer_rt;
 	ShaderResourceH		_normal_buffer_sr;
 
+	RenderTargetH       _velocity_buffer_rt;
+	ShaderResourceH		_velocity_buffer_sr;
+
 	RenderTargetH       _ssao_buffer_rt;
 	ShaderResourceH		_ssao_buffer_sr;
 
@@ -667,6 +755,10 @@ private:
 
 	RenderTargetH       _dof_rt;
 	ShaderResourceH		_dof_sr;
+
+	ShaderPermutation         _camera_velocity_shader_permutation;
+	const ParameterGroupDesc* _camera_velocity_params_desc;
+	ParameterGroup*           _camera_velocity_params;
 
 	ShaderPermutation         _reflections_composite_shader_permutation;
 	const ParameterGroupDesc* _reflections_composite_params_desc;
