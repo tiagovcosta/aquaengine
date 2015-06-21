@@ -4,7 +4,7 @@ include = [  ]
 
 passes =
 {
-	accumulation =
+	camera_velocity =
 	{
 		vs = "vs_func"
 		ps = "ps_func"
@@ -30,7 +30,6 @@ instance =
 
 	options =
 	[
-		//{ define = "INSTANCING" }
 	]
 }
 
@@ -73,7 +72,7 @@ snippets =
 
 	ps_func =
 	{
-		include = [/*samplers,*/ ps_input, depth_utilities]
+		include = [/*samplers,*/ ps_input, depth_utilities, velocity_utilities]
 
 		hlsl =
 		"""
@@ -94,7 +93,7 @@ snippets =
 				prev_position.y = -prev_position.y;
 				prev_position.xy = prev_position.xy * 0.5f + 0.5f;
 
-				return (prev_position.xy - input.tex_coord.xy) * 0.5f + 0.5f;
+				return encode_velocity(prev_position.xy - input.tex_coord.xy);
 			}
 		"""
 	}

@@ -231,6 +231,9 @@
     <ClInclude Include="Generators\VolumetricLightGenerator.h">
       <Filter>Generators</Filter>
     </ClInclude>
+    <ClInclude Include="Generators\PostProcess\MotionBlur.h">
+      <Filter>Generators\PostProcess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Allocators\Allocator.cpp">
@@ -353,6 +356,9 @@
     </ClCompile>
     <ClCompile Include="Generators\VolumetricLightGenerator.cpp">
       <Filter>Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Generators\PostProcess\MotionBlur.cpp">
+      <Filter>Generators\PostProcess</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

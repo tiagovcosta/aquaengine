@@ -146,6 +146,27 @@ snippets =
 		"""
 	}
 
+
+	velocity_utilities =
+	{
+		hlsl = 
+		"""
+			// Based on CryEngine 3 Graphics Gems (slide 52)
+
+			float2 encode_velocity(float2 v)
+			{
+			    return sqrt(abs(v)) * sign(v) * (127.0f/255.0f) + 0.5f;
+			}
+
+			float2 decode_velocity(float2 enc)
+			{
+				float2 v = (enc - 0.5f) *  1.0f/(127.0f/255.0f);
+
+				return v*v * sign(v);
+			}
+		"""
+	}
+
 	gbuffer =
 	{
 		include = [ "normal_utilities" ]

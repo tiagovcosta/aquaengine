@@ -13,6 +13,7 @@
 #include <Generators\ScreenSpaceReflections.h>
 
 #include <Generators\PostProcess\DepthOfField.h>
+#include <Generators\PostProcess\MotionBlur.h>
 #include <Generators\PostProcess\ToneMapper.h>
 
 #include <DynamicSky.h>
@@ -186,6 +187,12 @@ public:
 		_depth_of_field.init(_renderer, _lua_state, *_main_allocator, *_scratchpad_allocator, _wnd_width, _wnd_height);
 
 		_renderer.addResourceGenerator(getStringID("depth_of_field"), &_depth_of_field);
+
+		//---------------------------------------------------------------------------------
+
+		_motion_blur.init(_renderer, _lua_state, *_main_allocator, *_scratchpad_allocator, _wnd_width, _wnd_height, 10);
+
+		_renderer.addResourceGenerator(getStringID("motion_blur"), &_motion_blur);
 
 		//---------------------------------------------------------------------------------
 
@@ -566,6 +573,14 @@ public:
 		_near_blur_radius_fraction = 1.5f;
 		_far_blur_radius_fraction = 1.0f;
 
+		//---------------------------------------------------
+
+		TwAddVarRW(my_bar, "Motion Blur", TW_TYPE_BOOL8, &_enable_mb, "");
+		TwAddVarRW(my_bar, "MB Num Samples", TW_TYPE_UINT32, &_mb_num_samples, "step = 1");
+
+		_enable_mb     = true;
+		_mb_num_samples = 7;
+
 		//------------------------------------------------------------------------------------------
 		// INIT TERRAIN
 		//------------------------------------------------------------------------------------------
@@ -911,6 +926,9 @@ public:
 		args.near_blur_radius_fraction = _near_blur_radius_fraction * 0.01f;
 		args.far_blur_radius_fraction  = _far_blur_radius_fraction* 0.01f;
 
+		args.enable_mb      = _enable_mb;
+		args.mb_num_samples = _mb_num_samples;
+
 		_scratchpad_allocator->clear();
 
 		scope_id = _renderer.getProfiler()->beginScope("main_view");
@@ -1036,6 +1054,7 @@ public:
 			allocator::deallocateDelete(*_main_allocator, _text_renderer);
 
 		_tone_mapper.shutdown();
+		_motion_blur.shutdown();
 		_depth_of_field.shutdown();
 
 		if(_dynamic_sky != nullptr)
@@ -1385,6 +1404,7 @@ private:
 	Terrain*	 _terrain;
 	DynamicSky*  _dynamic_sky;
 	DepthOfField _depth_of_field;
+	MotionBlur	 _motion_blur;
 	ToneMapper   _tone_mapper;
 
 	TextRenderer* _text_renderer;
@@ -1449,6 +1469,10 @@ private:
 	float _far_blur_transition_size;
 	float _near_blur_radius_fraction;
 	float _far_blur_radius_fraction;
+
+	// MB args
+	bool _enable_mb;
+	u32  _mb_num_samples;
 };
 
 #ifdef _WIN32

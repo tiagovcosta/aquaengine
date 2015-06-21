@@ -24,12 +24,16 @@ render_shaders = {
 	
 	"data/shaders/reflections_composite.cshader",
 
+	"data/shaders/camera_velocity.cshader",
+
 	--post process
 	"data/shaders/color_coc.cshader",
 	"data/shaders/dof_blur.cshader",
 	"data/shaders/dof_composite.cshader",
 
-	"data/shaders/camera_velocity.cshader",
+	"data/shaders/tile_max.cshader",
+	"data/shaders/neighbor_max.cshader",
+	"data/shaders/motion_blur.cshader",
 
 	"data/shaders/luminance.cshader",
 	"data/shaders/eye_adapt.cshader",

@@ -13,6 +13,7 @@
 #include <Generators\ScreenSpaceReflections.h>
 
 #include <Generators\PostProcess\DepthOfField.h>
+#include <Generators\PostProcess\MotionBlur.h>
 #include <Generators\PostProcess\ToneMapper.h>
 
 #include <Components\LightManager.h>
@@ -55,6 +56,10 @@ public:
 		float				 far_blur_transition_size;
 		float				 near_blur_radius_fraction;
 		float				 far_blur_radius_fraction;
+
+		//Motion blur args
+		bool                 enable_mb;
+		u32				     mb_num_samples;
 	};
 
 	void init(aqua::Renderer& renderer, lua_State* lua_state, Allocator& allocator, LinearAllocator& temp_allocator,
@@ -348,7 +353,7 @@ public:
 
 		const Args& args = *(const Args*)args_;
 
-		float color_clear[]  = { 0.0f, 0.0f, 0.0f, 0.0f };
+		float color_clear[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		float normal_clear[] = { 0.5f, 0.5f, 0.5f, 0.0f };
 
 		_renderer->getRenderDevice()->clearDepthStencilTarget(_depth_target2, 1.0f);
@@ -369,9 +374,9 @@ public:
 		//BUILD QUEUES
 
 		u32 passes_names[] = { getStringID("gbuffer"),
-							   getStringID("gbuffer_alpha_masked"),
-							   getStringID("skydome"),
-							   getStringID("debug") };
+			getStringID("gbuffer_alpha_masked"),
+			getStringID("skydome"),
+			getStringID("debug") };
 
 		enum class PassNameIndex : u8
 		{
@@ -395,7 +400,7 @@ public:
 		scope_id = profiler->beginScope("gbuffer");
 
 		RenderTexture gbuffer[] = { { _color_buffer_rt, nullptr, _width, _height, 1 },
-									{ _normal_buffer_rt, nullptr, _width, _height, 1 } };
+		{ _normal_buffer_rt, nullptr, _width, _height, 1 } };
 
 		_renderer->setViewport(*args.viewport, _width, _height);
 		_renderer->setRenderTarget(2, gbuffer, _depth_target2);
@@ -432,9 +437,9 @@ public:
 
 			_camera_velocity_params->setSRV(_depth_target2_sr, 0);
 
-			u32 offset                         = _camera_velocity_params_desc->getConstantOffset(getStringID("inv_view_prev_view_proj"));
+			u32 offset = _camera_velocity_params_desc->getConstantOffset(getStringID("inv_view_prev_view_proj"));
 			Matrix4x4* inv_view_prev_view_proj = (Matrix4x4*)pointer_math::add(_camera_velocity_params->getCBuffersData(), offset);
-			*inv_view_prev_view_proj           = args.camera->getView().Invert() * args.prev_view_proj;
+			*inv_view_prev_view_proj = args.camera->getView().Invert() * args.prev_view_proj;
 
 			DrawCall dc = createDrawCall(false, 3, 0, 0);
 
@@ -442,19 +447,19 @@ public:
 			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 			RenderItem render_item;
-			render_item.draw_call       = &dc;
-			render_item.num_instances   = 1;
-			render_item.shader          = _camera_velocity_shader_permutation[0];
+			render_item.draw_call = &dc;
+			render_item.num_instances = 1;
+			render_item.shader = _camera_velocity_shader_permutation[0];
 			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_camera_velocity_params);
 			render_item.material_params = nullptr;
-			render_item.mesh            = &mesh;
+			render_item.mesh = &mesh;
 
 			_renderer->setViewport(*args.viewport, _width, _height);
 
 			RenderTexture rt;
 			rt.render_target = _velocity_buffer_rt;
-			rt.width         = _width;
-			rt.height        = _height;
+			rt.width = _width;
+			rt.height = _height;
 
 			_renderer->setRenderTarget(1, &rt, nullptr);
 
@@ -472,10 +477,10 @@ public:
 		{
 			SSAOGenerator::Args ssao_args;
 			ssao_args.normal_buffer = _normal_buffer_sr;
-			ssao_args.depth_buffer  = _depth_target2_sr;
-			ssao_args.viewport      = args.viewport;
-			ssao_args.target        = _ssao_buffer_rt;
-			ssao_args.target_width  = _width;
+			ssao_args.depth_buffer = _depth_target2_sr;
+			ssao_args.viewport = args.viewport;
+			ssao_args.target = _ssao_buffer_rt;
+			ssao_args.target_width = _width;
 			ssao_args.target_height = _height;
 
 			_renderer->generateResource(getStringID("ssao"), &ssao_args, nullptr);
@@ -494,16 +499,16 @@ public:
 			scope_id = profiler->beginScope("volumetric_lights");
 
 			VolumetricLightGenerator::Args vl_args;
-			vl_args.camera            = args.camera;
-			vl_args.viewport          = args.viewport;
-			vl_args.target            = nullptr;
-			vl_args.input_depth       = _depth_target2_sr;
-			vl_args.shadow_map        = _csm.srv;
-			vl_args.light_dir         = _sun_light_dir;
-			vl_args.light_color       = args.sun_color;
+			vl_args.camera = args.camera;
+			vl_args.viewport = args.viewport;
+			vl_args.target = nullptr;
+			vl_args.input_depth = _depth_target2_sr;
+			vl_args.shadow_map = _csm.srv;
+			vl_args.light_dir = _sun_light_dir;
+			vl_args.light_color = args.sun_color;
 			vl_args.cascades_matrices = _csm.cascades_view_proj;
-			vl_args.cascades_splits   = _csm.cascades_end;
-			vl_args.output            = &volumetric_lights_output;
+			vl_args.cascades_splits = _csm.cascades_end;
+			vl_args.output = &volumetric_lights_output;
 
 			_renderer->generateResource(getStringID("volumetric_lights"), &vl_args, nullptr);
 
@@ -528,14 +533,14 @@ public:
 		li.depth = 1;
 
 		LightManager::Args lighting_args;
-		lighting_args.camera              = args.camera;
-		lighting_args.viewport            = args.viewport;
-		lighting_args.target              = &li;
-		lighting_args.color_buffer        = _color_buffer_sr;
-		lighting_args.normal_buffer       = _normal_buffer_sr;
-		lighting_args.depth_buffer        = _depth_target2_sr;
-		lighting_args.ssao_buffer         = _ssao_buffer_sr;
-		lighting_args.scattering_buffer   = volumetric_lights_output;
+		lighting_args.camera = args.camera;
+		lighting_args.viewport = args.viewport;
+		lighting_args.target = &li;
+		lighting_args.color_buffer = _color_buffer_sr;
+		lighting_args.normal_buffer = _normal_buffer_sr;
+		lighting_args.depth_buffer = _depth_target2_sr;
+		lighting_args.ssao_buffer = _ssao_buffer_sr;
+		lighting_args.scattering_buffer = volumetric_lights_output;
 
 		scope_id = profiler->beginScope("tiled_deferred");
 
@@ -547,7 +552,7 @@ public:
 		//Transparency
 		//-----------------------------------------------
 
-		
+
 
 		//-------------------------------------------------------------
 
@@ -558,13 +563,13 @@ public:
 			scope_id = profiler->beginScope("screen_space_reflections");
 
 			ScreenSpaceReflections::Args ssr_args;
-			ssr_args.camera            = args.camera;
-			ssr_args.color_texture     = _lighting_buffer_sr;
-			ssr_args.normal_texture    = _normal_buffer_sr;
-			ssr_args.depth_texture     = _depth_target2_sr;
-			ssr_args.viewport          = args.viewport;
-			ssr_args.thickness         = args.thickness;
-			ssr_args.output            = &ssr_output;
+			ssr_args.camera = args.camera;
+			ssr_args.color_texture = _lighting_buffer_sr;
+			ssr_args.normal_texture = _normal_buffer_sr;
+			ssr_args.depth_texture = _depth_target2_sr;
+			ssr_args.viewport = args.viewport;
+			ssr_args.thickness = args.thickness;
+			ssr_args.output = &ssr_output;
 
 			_renderer->generateResource(getStringID("screen_space_reflections"), &ssr_args, nullptr);
 
@@ -602,19 +607,19 @@ public:
 			mesh.topology = PrimitiveTopology::TRIANGLE_LIST;
 
 			RenderItem render_item;
-			render_item.draw_call       = &dc;
-			render_item.num_instances   = 1;
-			render_item.shader          = _reflections_composite_shader_permutation[0];
+			render_item.draw_call = &dc;
+			render_item.num_instances = 1;
+			render_item.shader = _reflections_composite_shader_permutation[0];
 			render_item.instance_params = _renderer->getRenderDevice()->cacheTemporaryParameterGroup(*_reflections_composite_params);
 			render_item.material_params = nullptr;
-			render_item.mesh            = &mesh;
+			render_item.mesh = &mesh;
 
 			_renderer->setViewport(*args.viewport, _width, _height);
 
 			RenderTexture rt;
 			rt.render_target = _composite_target;
-			rt.width         = _width;
-			rt.height        = _height;
+			rt.width = _width;
+			rt.height = _height;
 
 			_renderer->setRenderTarget(1, &rt, nullptr);
 			//_renderer->setRenderTarget(1, args.target, nullptr);
@@ -657,28 +662,28 @@ public:
 
 		RenderTexture dof;
 		dof.render_target = _dof_rt;
-		dof.width         = _width;
-		dof.height        = _height;
-		dof.depth         = 1;
+		dof.width = _width;
+		dof.height = _height;
+		dof.depth = 1;
 
 		DepthOfField::Args dof_args;
-		dof_args.camera                      = args.camera;
-		dof_args.color_texture               = _composite_target_sr;
-		dof_args.depth_texture               = _depth_target2_sr;
-		dof_args.target                      = &dof;
-		dof_args.viewport                    = args.viewport;
+		dof_args.camera = args.camera;
+		dof_args.color_texture = _composite_target_sr;
+		dof_args.depth_texture = _depth_target2_sr;
+		dof_args.target = &dof;
+		dof_args.viewport = args.viewport;
 		//dof_args.near_blurry_plane_z       = 1.11f;
 		//dof_args.near_sharp_plane_z        = 2.22f;
 		//dof_args.far_sharp_plane_z         = 100005.0f;
 		//dof_args.far_blurry_plane_z        = 1000010.0f;
 		//dof_args.near_blur_radius_fraction = 1.5f * 0.01f;
 		//dof_args.far_blur_radius_fraction  = 1.0f * 0.01f;
-		dof_args.focus_plane_z               = args.focus_plane_z;
-		dof_args.dof_size                    = args.dof_size;
-		dof_args.near_blur_transition_size   = args.near_blur_transition_size;
-		dof_args.far_blur_transition_size    = args.far_blur_transition_size;
-		dof_args.near_blur_radius_fraction   = args.near_blur_radius_fraction;
-		dof_args.far_blur_radius_fraction    = args.far_blur_radius_fraction;
+		dof_args.focus_plane_z = args.focus_plane_z;
+		dof_args.dof_size = args.dof_size;
+		dof_args.near_blur_transition_size = args.near_blur_transition_size;
+		dof_args.far_blur_transition_size = args.far_blur_transition_size;
+		dof_args.near_blur_radius_fraction = args.near_blur_radius_fraction;
+		dof_args.far_blur_radius_fraction = args.far_blur_radius_fraction;
 
 		_renderer->generateResource(getStringID("depth_of_field"), &dof_args, nullptr);
 
@@ -686,10 +691,31 @@ public:
 
 		//-------------------------------------------------------------
 
+		ShaderResourceH motion_blur_output = _dof_sr;
+
+		if(args.enable_mb)
+		{
+			scope_id = profiler->beginScope("motion_blur");
+
+			MotionBlur::Args motion_blur_args;
+			motion_blur_args.velocity_texture = _velocity_buffer_sr;
+			motion_blur_args.color_texture    = _dof_sr;
+			motion_blur_args.depth_texture    = _depth_target2_sr;
+			motion_blur_args.viewport         = args.viewport;
+			motion_blur_args.num_samples      = args.mb_num_samples;
+			motion_blur_args.output           = &motion_blur_output;
+
+			_renderer->generateResource(getStringID("motion_blur"), &motion_blur_args, nullptr);
+
+			profiler->endScope(scope_id);
+		}
+
+		//-------------------------------------------------------------
+
 		scope_id = profiler->beginScope("tonemap");
 
 		ToneMapper::Args tone_map_args;
-		tone_map_args.source   = _dof_sr;
+		tone_map_args.source   = motion_blur_output;
 		tone_map_args.target   = args.target;
 		tone_map_args.viewport = args.viewport;
 
