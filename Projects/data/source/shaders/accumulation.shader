@@ -33,7 +33,7 @@ instance =
 
 	options =
 	[
-		//{ define = "INSTANCING" }
+		{ define = "PUNCTUAL_LIGHT" }
 	]
 }
 
@@ -143,12 +143,24 @@ snippets =
 
 					float shadow_map_depth = shadow_map.Load(uint3(input.position.xy, 0)).r;
 
-					//accum += exp( -0.5f * step_length * i) * light_color * phase(LdotV) * shadowVisibility(position, depth) * step_length;
-					accum += light_color * phase(LdotV) * shadowVisibilityNoFiltering(position, depth) * step_length;
-					//accum += light_color * phase(LdotV) * shadowVisibility(position, depth);
+					//accum += exp( -0.5f * step_length * i) * shadowVisibility(position, depth) * step_length;
+					//accum += shadowVisibilityNoFiltering(position, depth) * step_length;
+					
+					#if PUNCTUAL_LIGHT
+						accum += phase(LdotV) * shadowVisibilityNoFiltering(position, depth);
+					#else
+						accum += shadowVisibilityNoFiltering(position, depth);
+					#endif
 
 					position += step;
 				}
+
+
+				#if !PUNCTUAL_LIGHT
+					accum *= phase(LdotV);
+				#endif
+
+				accum *= step_length * light_color;
 
 				//accum /= NUM_STEPS;
 

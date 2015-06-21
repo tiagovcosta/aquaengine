@@ -640,8 +640,7 @@ Vector3 DynamicSky::getSunColor() const
 		Vector2 SunOpticalDepth = t(point_p, point_p + _sun_dir * dFarPPc);
 
 		Vector2 OpticalDepthP = SunOpticalDepth + ViewerOpticalDepth;
-		//Vector3 v3Attenuation = exp(-Kr4PI * inv_wavelength * OpticalDepthP.x - Km4PI * wavelength_mie * OpticalDepthP.y);
-		//Vector3 v3Attenuation = exp(-Kr4PI * inv_wavelength * OpticalDepthP.x - Km4PI * OpticalDepthP.y);
+
 		Vector3 attenuation;
 		attenuation.x = exp(-Kr4PI * inv_wavelength.x * OpticalDepthP.x - Km4PI * OpticalDepthP.y);
 		attenuation.y = exp(-Kr4PI * inv_wavelength.y * OpticalDepthP.x - Km4PI * OpticalDepthP.y);
