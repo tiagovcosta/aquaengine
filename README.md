@@ -1,4 +1,4 @@
-#Aqua Engine
+# Aqua Engine
 
 Welcome to the Aqua Engine source code!
 
@@ -14,7 +14,7 @@ K - Spawn Boxes
 
 Also, [visit the engine website](http://www.tiagovcosta.com/aqua).
 
-##Branches
+## Branches
 
 The engine source code is published in 2 branches:
 
@@ -23,7 +23,7 @@ The engine source code is published in 2 branches:
 
 Private branches are used to track live changes and start development of new features. Code in those branches, may be buggy and not compile. If you want more info or access to them [contact me](mailto:tiago.costav@gmail.com).
 
-##How to build
+## How to build
 
 **You'll need Windows 7+ 64bit, a D3D11+ GPU and Visual Studio 2013**
 
@@ -31,4 +31,4 @@ Private branches are used to track live changes and start development of new fea
 2. Download the [Dependencies folder](http://www.tiagovcosta.com/Dependencies.rar), and extract inside the AquaEngine\ folder.
 3. Download the [data folder](http://www.tiagovcosta.com/data.rar), and extract inside the AquaEngine\Projects\ folder.
 
-#Do you need help or want to contribute? [Contact me](mailto:tiago.costav@gmail.com).
+# Do you need help or want to contribute? [Contact me](mailto:tiago.costav@gmail.com).
